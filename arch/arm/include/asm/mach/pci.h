@@ -19,7 +19,9 @@ struct pci_bus;
 struct device;
 
 struct hw_pci {
-	struct pci_ops	*ops;
+ 
+#ifdef CONFIG_PCI_DOMAINS
+	int		domain;
 	int		nr_controllers;
 	void		**private_data;
 	int		(*setup)(int nr, struct pci_sys_data *);
@@ -41,6 +43,9 @@ struct hw_pci {
  * Per-controller structure
  */
 struct pci_sys_data {
+#ifdef CONFIG_PCI_DOMAINS
+	int		domain;
+#endif
 	struct list_head node;
 	int		busnr;		/* primary bus number			*/
 	u64		mem_offset;	/* bus->cpu memory mapping offset	*/
@@ -99,5 +104,14 @@ extern struct pci_ops dc21285_ops;
 extern int dc21285_setup(int nr, struct pci_sys_data *);
 extern void dc21285_preinit(void);
 extern void dc21285_postinit(void);
+
+extern int via82c505_setup(int nr, struct pci_sys_data *);
+extern struct pci_bus *via82c505_scan_bus(int nr, struct pci_sys_data *);
+extern void via82c505_init(void *sysdata);
+
+extern int pci_v3_setup(int nr, struct pci_sys_data *);
+extern struct pci_bus *pci_v3_scan_bus(int nr, struct pci_sys_data *);
+extern void pci_v3_preinit(void);
+extern void pci_v3_postinit(void);
 
 #endif /* __ASM_MACH_PCI_H */
