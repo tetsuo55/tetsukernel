@@ -224,7 +224,6 @@ int irq_set_affinity_locked(struct irq_data *data, const struct cpumask *mask,
 
 int __irq_set_affinity(unsigned int irq, const struct cpumask *mask, bool force)
 {
-	struct irq_desc *desc = irq_to_desc(irq);
 	unsigned long flags;
 	int ret;
 
@@ -478,7 +477,6 @@ void enable_irq(unsigned int irq)
 {
 	unsigned long flags;
 	struct irq_desc *desc = irq_get_desc_buslock(irq, &flags, IRQ_GET_DESC_CHECK_GLOBAL);
-
 	if (!desc)
 		return;
 	if (WARN(!desc->irq_data.chip,

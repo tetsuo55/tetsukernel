@@ -726,7 +726,7 @@ __irq_do_set_handler(struct irq_desc *desc, irq_flow_handler_t handle,
 		handle = handle_bad_irq;
 	} else {
 		if (WARN_ON(desc->irq_data.chip == &no_irq_chip))
-			return;
+			goto out;
 	}
 
 	/* Uninstall? */
