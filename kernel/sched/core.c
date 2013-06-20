@@ -1939,7 +1939,6 @@ static void __sched_fork(unsigned long clone_flags, struct task_struct *p)
 
 #ifdef CONFIG_SMP
 	p->se.avg.avg_period = 0;
-	p->se.avg.runnable_avg_sum = 0;
 	p->se.avg.usage_avg_sum = 0;
 	p->se.avg.remainder = 0;
 #ifdef CONFIG_SCHED_HMP
@@ -2254,6 +2253,8 @@ void wake_up_new_task(struct task_struct *p)
 	set_task_cpu(p, select_task_rq(p, task_cpu(p), SD_BALANCE_FORK, 0));
 #endif
 
+	/* Initialize new task's runnable average */
+	init_task_runnable_average(p);
 	rq = __task_rq_lock(p);
 	activate_task(rq, p, ENQUEUE_WAKEUP_NEW);
 	p->on_rq = TASK_ON_RQ_QUEUED;
