@@ -11237,7 +11237,6 @@ static int cpufreq_callback(struct notifier_block *nb,
 		return NOTIFY_OK;
 	}
 
-<<<<<<< HEAD
 	extents = &freq_scale[cpu];
 	if (extents->flags & SCHED_LOAD_FREQINVAR_SINGLEFREQ) {
 		/* If our governor was recognised as a single-freq governor,
@@ -11250,10 +11249,6 @@ static int cpufreq_callback(struct notifier_block *nb,
 	}
 
 	return NOTIFY_OK;
-=======
-	if (numabalancing_enabled)
-		task_tick_numa(rq, curr);
->>>>>>> sched/fair: Remove rq's runnable avg
 }
 
 /* Called when the CPUFreq governor is changed.
