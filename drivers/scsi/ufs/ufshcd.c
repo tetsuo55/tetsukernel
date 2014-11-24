@@ -1186,6 +1186,8 @@ static void ufshcd_exit_clk_gating(struct ufs_hba *hba)
 		return;
 	destroy_workqueue(hba->ufshcd_workq);
 	device_remove_file(hba->dev, &hba->clk_gating.delay_attr);
+	cancel_work_sync(&hba->clk_gating.ungate_work);
+	cancel_delayed_work_sync(&hba->clk_gating.gate_work);
 }
 
 #if defined(CONFIG_PM_DEVFREQ)
