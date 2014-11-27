@@ -295,11 +295,15 @@ struct cpufreq_driver {
 				 unsigned int cpu); // fix for some CPU govs and hotplugs
 	int	(*bios_limit)	(int cpu, unsigned int *limit);
 
-	int	(*exit)		(struct cpufreq_policy *policy);
-	void	(*stop_cpu)	(struct cpufreq_policy *policy);
-	int	(*suspend)	(struct cpufreq_policy *policy);
-	int	(*resume)	(struct cpufreq_policy *policy);
-	struct freq_attr	**attr;
+	int		(*exit)(struct cpufreq_policy *policy);
+	void		(*stop_cpu)(struct cpufreq_policy *policy);
+	int		(*suspend)(struct cpufreq_policy *policy);
+	int		(*resume)(struct cpufreq_policy *policy);
+
+	/* Will be called after the driver is fully initialized */
+	void		(*ready)(struct cpufreq_policy *policy);
+
+	struct freq_attr **attr;
 
 	/* platform specific boost support code */
 	bool                    boost_supported;
