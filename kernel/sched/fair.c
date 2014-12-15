@@ -679,7 +679,6 @@ void init_task_runnable_average(struct task_struct *p)
 {
 	u32 start_load = sysctl_sched_latency >> 10;
 
-	p->se.avg.decay_count = 0;
 	p->se.avg.runnable_avg_sum = p->se.avg.running_avg_sum = start_load;
 	p->se.avg.avg_period = start_load;
 	__update_task_entity_contrib(&p->se);
