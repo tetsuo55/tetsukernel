@@ -270,6 +270,10 @@ idle_states:
 nr_idle_states:
 	Number of idle states in idle_states list.
 
+nr_idle_states_below:
+	Number of idle-states below current level. Filled by generic code, not
+	to be provided by the platform.
+
 There are no unit requirements for the energy cost data. Data can be normalized
 with any reference, however, the normalization must be consistent across all
 energy cost data. That is, one bogo-joule/watt must be the same quantity for
