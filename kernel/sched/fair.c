@@ -4582,6 +4582,11 @@ static unsigned long capacity_of(int cpu)
 	return cpu_rq(cpu)->cpu_capacity;
 }
 
+static unsigned long capacity_orig_of(int cpu)
+{
+	return cpu_rq(cpu)->cpu_capacity_orig;
+}
+
 static unsigned long cpu_avg_load_per_task(int cpu)
 {
 	struct rq *rq = cpu_rq(cpu);
@@ -8220,7 +8225,7 @@ void update_group_capacity(struct sched_domain *sd, int cpu)
 			 * causing divide-by-zero issues on boot.
 			 */
 			if (unlikely(!rq->sd)) {
-				capacity += capacity_of(cpu);
+				capacity_orig += capacity_orig_of(cpu);
 			} else {
 				sgc = rq->sd->groups->sgc;
 				capacity += sgc->capacity;
