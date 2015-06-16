@@ -743,13 +743,13 @@ __irq_do_set_handler(struct irq_desc *desc, irq_flow_handler_t handle,
 			 * right away.
 			 */
 			if (WARN_ON(is_chained))
-				goto out;
+				return;
 			/* Try the parent */
 			irq_data = irq_data->parent_data;
 		}
 #endif
 		if (WARN_ON(!irq_data || irq_data->chip == &no_irq_chip))
-			goto out;
+			return;
 	}
 
 	/* Uninstall? */
