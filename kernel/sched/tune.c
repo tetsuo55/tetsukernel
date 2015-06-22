@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #include <linux/cgroup.h>
 #include <linux/err.h>
 #include <linux/kernel.h>
@@ -15,7 +16,7 @@
 static bool schedtune_initialized = false;
 #endif
 
-int sysctl_sched_cfs_boost __read_mostly;
+unsigned int sysctl_sched_cfs_boost __read_mostly = 0;
 
 extern struct target_nrg schedtune_target_nrg;
 
@@ -947,4 +948,3 @@ nodata:
 	return -EINVAL;
 }
 postcore_initcall(schedtune_init);
-
