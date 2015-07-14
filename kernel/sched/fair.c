@@ -5153,26 +5153,29 @@ static int energy_diff(struct energy_env *eenv)
 	return result;
 }
 
+/*
+ * Detect M:N waker/wakee relationships via a switching-frequency heuristic.
+ * A waker of many should wake a different task than the one last awakened
+ * at a frequency roughly N times higher than one of its wakees.  In order
+ * to determine whether we should let the load spread vs consolodating to
+ * shared cache, we look for a minimum 'flip' frequency of llc_size in one
+ * partner, and a factor of lls_size higher frequency in the other.  With
+ * both conditions met, we can be relatively sure that the relationship is
+ * non-monogamous, with partner count exceeding socket size.  Waker/wakee
+ * being client/server, worker/dispatcher, interrupt source or whatever is
+ * irrelevant, spread criteria is apparent partner count exceeds socket size.
+ */
 static int wake_wide(struct task_struct *p)
 {
+	unsigned int master = current->wakee_flips;
+	unsigned int slave = p->wakee_flips;
 	int factor = this_cpu_read(sd_llc_size);
 
-	/*
-	 * Yeah, it's the switching-frequency, could means many wakee or
-	 * rapidly switch, use factor here will just help to automatically
-	 * adjust the loose-degree, so bigger node will lead to more pull.
-	 */
-	if (p->wakee_flips > factor) {
-		/*
-		 * wakee is somewhat hot, it needs certain amount of cpu
-		 * resource, so if waker is far more hot, prefer to leave
-		 * it alone.
-		 */
-		if (current->wakee_flips > (factor * p->wakee_flips))
-			return 1;
-	}
-
-	return 0;
+	if (master < slave)
+		swap(master, slave);
+	if (slave < factor || master < slave * factor)
+		return 0;
+	return 1;
 }
 
 static int wake_affine(struct sched_domain *sd, struct task_struct *p, int sync)
@@ -5183,13 +5186,6 @@ static int wake_affine(struct sched_domain *sd, struct task_struct *p, int sync)
 	struct task_group *tg;
 	unsigned long weight;
 	int balanced;
-
-	/*
-	 * If we wake multiple tasks be careful to not bounce
-	 * ourselves around too much.
-	 */
-	if (wake_wide(p))
-		return 0;
 
 	idx	  = sd->wake_idx;
 	this_cpu  = smp_processor_id();
@@ -6813,7 +6809,7 @@ select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_f
 {
 	struct sched_domain *tmp, *affine_sd = NULL, *sd = NULL;
 	int cpu = smp_processor_id();
-	int new_cpu = cpu;
+	int new_cpu = prev_cpu;
 	int want_affine = 0;
 	int want_sibling = true;
 	int sync = wake_flags & WF_SYNC;
@@ -6827,12 +6823,12 @@ select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_f
 		want_sibling = false;
 
 	if (sd_flag & SD_BALANCE_WAKE && want_sibling)
-		want_affine = cpumask_test_cpu(cpu, tsk_cpus_allowed(p));
+		want_affine = !wake_wide(p) && cpumask_test_cpu(cpu, tsk_cpus_allowed(p));
 
 	rcu_read_lock();
 	for_each_domain(cpu, tmp) {
 		if (!(tmp->flags & SD_LOAD_BALANCE))
-			continue;
+			break;
 
 		/*
 		 * If both cpu and prev_cpu are part of this domain,
@@ -6846,20 +6842,21 @@ select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_f
 
 		if (tmp->flags & sd_flag)
 			sd = tmp;
+		else if (!want_affine)
+			break;
 	}
 
-	if (affine_sd && cpu != prev_cpu && wake_affine(affine_sd, p, sync))
-		prev_cpu = cpu;
-
-	if (sd_flag & SD_BALANCE_WAKE && want_sibling) {
-		if (energy_aware() && !cpu_rq(cpu)->rd->overutilized)
-			new_cpu = energy_aware_wake_cpu(p, prev_cpu);
-		else
-			new_cpu = select_idle_sibling(p, prev_cpu);
-		goto unlock;
+	if (affine_sd) {
+		sd = NULL; /* Prefer wake_affine over balance flags */
+		if (cpu != prev_cpu && wake_affine(affine_sd, p, sync))
+			new_cpu = cpu;
 	}
 
-	while (sd) {
+	if (!sd) {
+		if (sd_flag & SD_BALANCE_WAKE) /* XXX always ? */
+			new_cpu = select_idle_sibling(p, new_cpu);
+
+	} else while (sd) {
 		struct sched_group *group;
 		int weight;
 
@@ -6893,7 +6890,6 @@ select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_f
 		}
 		/* while loop will break here if sd == NULL */
 	}
-unlock:
 	rcu_read_unlock();
 
 #ifdef CONFIG_SCHED_HMP
@@ -11917,7 +11913,7 @@ static int __init hmp_dwcompensation_init(void)
 	 * because load is decayed about 1/2 for 32ms.
 	 */
 	hmp_dwcompensation.threshold = hmp_down_threshold / 2;
-	hmp_dwcompensation_update_thr();
+	hmp_dwcompensation_update_thr();y
 
 	for (lv = 0; lv < DWCOM_LV_END; lv++)
 		pm_qos_add_request(&hmp_dwcompensation.data[lv].pm_qos,
