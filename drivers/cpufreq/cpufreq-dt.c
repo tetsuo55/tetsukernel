@@ -341,6 +341,14 @@ static int cpufreq_init(struct cpufreq_policy *policy)
 		goto out_cooling_unregister;
 	}
 
+	/* Support turbo/boost mode */
+	if (policy_has_boost_freq(policy)) {
+		/* This gets disabled by core on driver unregister */
+		ret = cpufreq_enable_boost_support();
+		if (ret)
+			goto out_free_cpufreq_table;
+	}
+
 	policy->cpuinfo.transition_latency = transition_latency;
 
 	of_node_put(np);
