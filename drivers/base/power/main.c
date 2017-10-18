@@ -30,7 +30,6 @@
 #include <linux/suspend.h>
 #include <trace/events/power.h>
 #include <linux/cpufreq.h>
-/* #include <linux/cpuidle.h> */
 #include <linux/timer.h>
 #include <linux/wakeup_reason.h>
 
@@ -609,7 +608,6 @@ void dpm_resume_noirq(pm_message_t state)
 	async_synchronize_full();
 	dpm_show_time(starttime, state, "noirq");
 	resume_device_irqs();
-//	cpuidle_resume();
 	trace_suspend_resume(TPS("dpm_resume_noirq"), state.event, false);
 }
 
@@ -1125,7 +1123,7 @@ int dpm_suspend_noirq(pm_message_t state)
 	int error = 0;
 
 	trace_suspend_resume(TPS("dpm_suspend_noirq"), state.event, true);
-//	cpuidle_pause();
+ entering suspend as part of commit 8651f97bd951d0bb1c10fa24e3fa3455193f3548 in order to work around some ACPI bugs. However, there's no reason to do this on modern platforms. Leaving cpuidle enabled can result in improved power consumption if dpm_resume_noirq runs for a significant time. Change-Id: Ie182785b176f448698c0264eba554d1e315e8a06 Signed-off-by: andip71 <andreasp@gmx.de>
 	suspend_device_irqs();
 	mutex_lock(&dpm_list_mtx);
 	pm_transition = state;
