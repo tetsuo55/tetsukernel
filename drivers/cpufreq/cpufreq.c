@@ -677,7 +677,10 @@ static ssize_t store_##file_name					\
 (struct cpufreq_policy *policy, const char *buf, size_t count)		\
 {									\
 	int ret;							\
-	struct cpufreq_policy new_policy;				\
+	struct cpufreq_policy new_policy;	                        \   
+                                                                        \
+	if (&policy->object == &policy->min)				\
+		return count;				          	\
 									\
 	new_policy.min = policy->user_policy.min;			\
 	new_policy.max = policy->user_policy.max;			\
