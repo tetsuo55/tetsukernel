@@ -91,10 +91,10 @@ def guess_cross_compile(order):
     for prefix in order:
         if which("{prefix}gcc".format(**locals())):
             return prefix 
-CROSS_COMPILE_DEFAULT = os.environ.get('CROSS_COMPILE', guess_cross_compile(order=[
+CROSS_COMPILE_DEFAULT = re.sub('^.*ccache\s+', '', ('CROSS_COMPILE', guess_cross_compile(order=[
     "aarch64-linux-android-",
     "aarch64-linux-gnu-",
-    ]))
+    ])))
 KERNEL_ARCH = 'arm64'
 assert CROSS_COMPILE_DEFAULT is not None
 def _cross(execname):
