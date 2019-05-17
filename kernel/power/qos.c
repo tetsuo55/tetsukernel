@@ -51,7 +51,7 @@
 /*
  * locking rule: all changes to constraints or notifiers lists
  * or pm_qos_object list and pm_qos_objects need to happen with pm_qos_lock
- * held, taken with _irqsave.  One lock to rule them all
+ * held.  One lock to rule them all
  */
 struct pm_qos_object {
 	struct pm_qos_constraints *constraints;
@@ -352,7 +352,6 @@ static inline void pm_qos_set_value(struct pm_qos_constraints *c, s32 value)
 int pm_qos_update_target(struct pm_qos_constraints *c, struct plist_node *node,
 			 enum pm_qos_req_action action, int value, void *notify_param)
 {
-	unsigned long flags;
 	int prev_value, curr_value, new_value;
 	int ret;
 
@@ -361,7 +360,7 @@ int pm_qos_update_target(struct pm_qos_constraints *c, struct plist_node *node,
 	struct pm_qos_constraints *cluster0_max_const;
 #endif
 
-	spin_lock_irqsave(&pm_qos_lock, flags);
+	spin_lock(&pm_qos_lock);
 
 #ifdef CONFIG_ARCH_EXYNOS
 	cluster1_max_const = cluster1_freq_max_pm_qos.constraints;
@@ -401,7 +400,7 @@ int pm_qos_update_target(struct pm_qos_constraints *c, struct plist_node *node,
 	curr_value = pm_qos_get_value(c);
 	pm_qos_set_value(c, curr_value);
 
-	spin_unlock_irqrestore(&pm_qos_lock, flags);
+	spin_unlock(&pm_qos_lock);
 
 	trace_pm_qos_update_target(action, prev_value, curr_value);
 
@@ -824,7 +823,6 @@ static ssize_t pm_qos_power_read(struct file *filp, char __user *buf,
 		size_t count, loff_t *f_pos)
 {
 	s32 value;
-	unsigned long flags;
 	struct pm_qos_request *req = filp->private_data;
 
 	if (!req)
@@ -832,9 +830,9 @@ static ssize_t pm_qos_power_read(struct file *filp, char __user *buf,
 	if (!pm_qos_request_active(req))
 		return -EINVAL;
 
-	spin_lock_irqsave(&pm_qos_lock, flags);
+	spin_lock(&pm_qos_lock);
 	value = pm_qos_get_value(pm_qos_array[req->pm_qos_class]->constraints);
-	spin_unlock_irqrestore(&pm_qos_lock, flags);
+	spin_unlock(&pm_qos_lock);
 
 	return simple_read_from_buffer(buf, count, f_pos, &value, sizeof(s32));
 }
@@ -868,9 +866,8 @@ static ssize_t pm_qos_power_write(struct file *filp, const char __user *buf,
 static void pm_qos_debug_show_one(struct seq_file *s, struct pm_qos_object *qos)
 {
 	struct plist_node *p;
-	unsigned long flags;
 
-	spin_lock_irqsave(&pm_qos_lock, flags);
+	spin_lock(&pm_qos_lock);
 
 	seq_printf(s, "%s\n", qos->name);
 	seq_printf(s, "   default value: %d\n", qos->constraints->default_value);
@@ -883,7 +880,7 @@ static void pm_qos_debug_show_one(struct seq_file *s, struct pm_qos_object *qos)
 				(container_of(p, struct pm_qos_request, node))->line,
 				p->prio);
 
-	spin_unlock_irqrestore(&pm_qos_lock, flags);
+	spin_unlock(&pm_qos_lock);
 }
 
 static int pm_qos_debug_show(struct seq_file *s, void *d)
