@@ -204,9 +204,8 @@ static void __init combiner_init(void __iomem *combiner_base,
 		combiner_cascade_irq(&combiner_data[i], irq);
 	}
 }
-/* added IRQ PM fix */
-#ifdef CONFIG_PM
 
+#ifdef CONFIG_PM
 /**
  * combiner_suspend - save interrupt combiner state before suspend
  *
@@ -253,7 +252,7 @@ static struct syscore_ops combiner_syscore_ops = {
 	.suspend	= combiner_suspend,
 	.resume		= combiner_resume,
 };
-/* end */
+
 static int __init combiner_of_init(struct device_node *np,
 				   struct device_node *parent)
 {
