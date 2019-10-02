@@ -850,6 +850,12 @@ static inline u32 hc32_to_cpup (const struct ehci_hcd *ehci, const __hc32 *x)
 #define ehci_warn(ehci, fmt, args...) \
 	dev_warn(ehci_to_hcd(ehci)->self.controller , fmt , ## args)
 
+#ifdef VERBOSE_DEBUG
+#	define ehci_vdbg ehci_dbg
+#else
+	static inline void ehci_vdbg(struct ehci_hcd *ehci, ...) {}
+#endif
+
 
 #ifndef CONFIG_DYNAMIC_DEBUG
 #define STUB_DEBUG_FILES
