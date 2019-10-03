@@ -129,7 +129,7 @@ endif;
 
 # Magisk Root
 if file_getprop("/tmp/aroma/menu.prop", "group1") == "opt2" then
-show_progress(0.85, "-19000");
+show_progress(0.85, "-30000");
 	
 	# Clean opposite kernel
 	run_program("/tmp/ts/clean_supersu.sh");
@@ -144,10 +144,10 @@ show_progress(0.85, "-19000");
 		
 	ui_print("-- Rooting with Magisk Manager...");
 	ui_print(" ");
-	package_extract_dir("magisk", "/tmp/ts/magisk");
-	run_program("/sbin/busybox", "unzip", "/tmp/ts/magisk/magisk.zip", "META-INF/com/google/android/*", "-d", "/tmp/ts/magisk");
-	run_program("/sbin/sh", "/tmp/ts/magisk/META-INF/com/google/android/update-binary", "dummy", "1", "/tmp/ts/magisk/magisk.zip");
-	delete_recursive("/tmp/ts/magisk");
+	package_extract_dir("magisk", "/tmp/magisk");
+	run_program("/sbin/busybox", "unzip", "/tmp/magisk/magisk.zip", "META-INF/com/google/android/*", "-d", "/tmp/magisk");
+	run_program("/sbin/sh", "/tmp/magisk/META-INF/com/google/android/update-binary", "dummy", "1", "/tmp/magisk/magisk.zip");
+	delete_recursive("/tmp/magisk");
 endif;
 
 # SuperSU Root
