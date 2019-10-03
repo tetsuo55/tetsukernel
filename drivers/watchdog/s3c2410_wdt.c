@@ -581,6 +581,7 @@ get_wdt_drv_data(struct platform_device *pdev)
 	}
 }
 
+#ifdef CONFIG_EXYNOS_SNAPSHOT_WATCHDOG_RESET
 int s3c2410wdt_set_emergency_stop(void)
 {
 	struct s3c2410_wdt *wdt = s3c_wdt;
@@ -604,6 +605,7 @@ int s3c2410wdt_keepalive_emergency(void)
 	writel(wdt->count, wdt->reg_base + S3C2410_WTCNT);
 	return 0;
 }
+#endif
 
 #ifdef CONFIG_EXYNOS_SNAPSHOT_WATCHDOG_RESET
 static int s3c2410wdt_panic_handler(struct notifier_block *nb,
