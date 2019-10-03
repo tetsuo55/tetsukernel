@@ -10,9 +10,11 @@
 # -----
 export ARCH=arm64
 export SUBARCH=arm64
+CCACHE="$(command -v ccache)"
+export CCACHE
 # NO WORKS export BUILD_CROSS_COMPILE=~/kernel/toolchain/gcc-linaro-5.5.0-2017.10-i686_aarch64-linux-gnu/bin/aarch64-linux-gnu-gcc
 # export BUILD_CROSS_COMPILE=~/kernel/toolchain/aarch64-linux-android-4.9-master/bin/aarch64-linux-android-
-export BUILD_CROSS_COMPILE=~/kernel/toolchain/aarch64-linux-android-4.9-o-mr1-iot-preview-8/bin/aarch64-linux-android-
+export BUILD_CROSS_COMPILE=/home/sony/kernel/toolchain/aarch64-linux-android-4.9-o-mr1-iot-preview-8/bin/aarch64-linux-android-
 # export BUILD_CROSS_COMPILE=~/kernel/toolchain/aarch64-linux-android-4.9/bin/aarch64-linux-android-
 # NO WORKS export BUILD_CROSS_COMPILE=~kernel/toolchain/arm-eabi-4.8-master/bin/arm-eabi-
 # NO WORKS export BUILD_CROSS_COMPILE=~/kernel/toolchain/arm32_arm64_cross_toolchain-master/bin/aarch64-linux-aarch64-linux-
@@ -25,7 +27,7 @@ export BUILD_CROSS_COMPILE=~/kernel/toolchain/aarch64-linux-android-4.9-o-mr1-io
 #export BUILD_CROSS_COMPILE=~/kernel/toolchain/linaro-7.2.1-master/bin/arm-linaro-linux-androideabi-
 #export BUILD_CROSS_COMPILE=~/kernel/toolchain/aarch64-linux-android-7.0-kernel/bin/aarch64-linux-android-
 #export BUILD_CROSS_COMPILE=~/kernel/toolchain/gcc-linaro-4.9.4-2017.01-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
-export CROSS_COMPILE=$BUILD_CROSS_COMPILE
+export CROSS_COMPILE="${CCACHE} $BUILD_CROSS_COMPILE"
 export BUILD_JOB_NUMBER=`grep processor /proc/cpuinfo|wc -l`
 
 export ANDROID_MAJOR_VERSION=p
