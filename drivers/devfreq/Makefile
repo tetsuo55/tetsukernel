@@ -10,3 +10,6 @@ obj-$(CONFIG_DEVFREQ_GOV_USERSPACE)	+= governor_userspace.o
 obj-$(CONFIG_ARM_EXYNOS4_BUS_DEVFREQ)	+= exynos/
 obj-$(CONFIG_ARM_EXYNOS5_BUS_DEVFREQ)	+= exynos/
 obj-$(CONFIG_ARM_EXYNOS8890_BUS_DEVFREQ)+= exynos/
+
+# DEVFREQ Boost
+obj-$(CONFIG_DEVFREQ_BOOST)		+= devfreq_boost.o
