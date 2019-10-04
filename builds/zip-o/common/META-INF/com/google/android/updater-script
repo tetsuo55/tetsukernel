@@ -28,7 +28,6 @@ run_program("/tmp/ts/install_script.sh");
 ui_print(" ");
 ui_print("@ThundeRStormS - System Patching...");
 package_extract_dir("ts/system", "/system");
-run_program("/tmp/ts/del_wakelock.sh");  
 run_program("/tmp/ts/tskernel.sh");
 
 ####################################################
