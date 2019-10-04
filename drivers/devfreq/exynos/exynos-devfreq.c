@@ -25,6 +25,7 @@
 #include <linux/suspend.h>
 #include <linux/exynos-ss.h>
 
+#include <linux/devfreq_boost.h>
 #include <soc/samsung/exynos-devfreq.h>
 #include <soc/samsung/tmu.h>
 #include <soc/samsung/ect_parser.h>
