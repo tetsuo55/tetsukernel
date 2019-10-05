@@ -337,7 +337,8 @@ static const struct xpad_device {
 	{ 0x24c6, 0xfafe, "Rock Candy Gamepad for Xbox 360", 0, XTYPE_XBOX360 },
 	{ 0x3767, 0x0101, "Fanatec Speedster 3 Forceshock Wheel", 0, XTYPE_XBOX },
 	{ 0xffff, 0xffff, "Chinese-made Xbox Controller", 0, XTYPE_XBOX },
-	{ 0x0000, 0x0000, "Generic X-Box pad", 0, XTYPE_UNKNOWN }
+	{ 0x0000, 0x0000, "Generic X-Box pad", 0, XTYPE_UNKNOWN },
+    	{ 0x0079, 0x0006, "Snopy SG-401 Dual Shock Controller", 0, XTYPE_XBOX360 }
 };
 
 /* buttons shared with xbox and xbox360 */
