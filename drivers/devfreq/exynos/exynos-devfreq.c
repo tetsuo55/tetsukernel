@@ -1536,14 +1536,6 @@ static int exynos_devfreq_probe(struct platform_device *pdev)
 		}
 	}
 
-        if(data->devfreq == NULL) {
-		pr_err("DEVFREQ(MIF) : failed to add device\n");
-		ret = -ENOMEM;
-		goto err_data;
-	}
-
-	devfreq_register_boost_device(DEVFREQ_EXYNOS_MIF, data->devfreq);
-
 	data->devfreq_profile.freq_table = kzalloc(sizeof(int) * data->max_state, GFP_KERNEL);
 	if (data->devfreq_profile.freq_table == NULL) {
 		dev_err(data->dev, "failed to allocate for freq_table\n");
