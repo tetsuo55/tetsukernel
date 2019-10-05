@@ -18,6 +18,7 @@
 #ifdef CONFIG_SEC_PM_DEBUG
 #include <linux/fb.h>
 #endif
+#include <linux/kwakeblock.h>
 #include <trace/events/power.h>
 
 #include "power.h"
@@ -545,6 +546,11 @@ static void wakeup_source_report_event(struct wakeup_source *ws)
 	if (!check_for_block(ws))	// AP: check if wakelock is on wakelock blocker list
 	{
 #endif
+
+	// check if this wakeup-source/wakelock was blocked from userspace
+	if (kwakeblock_is_blocked(ws->name)) {
+		return;
+	}
 		ws->event_count++;
 		/* This is racy, but the counter is approximate anyway. */
 		if (events_check_enabled)

@@ -25,3 +25,5 @@ obj-$(CONFIG_DEV_COREDUMP) += devcoredump.o
 
 ccflags-$(CONFIG_DEBUG_DRIVER) := -DDEBUG
 
+# Kernel Wakelock Blocker
+obj-$(CONFIG_PM_KWAKEBLOCK)  += kwakeblock.o
