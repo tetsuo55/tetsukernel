@@ -73,7 +73,7 @@
 /* added abilities for OC big and LITTLE cluster */
 #ifdef CONFIG_SOC_EXYNOS8890
 #define CL0_MIN_FREQ		130000
-#define CL0_MAX_FREQ		1690000
+#define CL0_MAX_FREQ		1794000
 #define CL1_MIN_FREQ		208000
 #define CL1_MAX_FREQ		2800000
 #else
