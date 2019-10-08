@@ -1572,7 +1572,7 @@ static int __cpufreq_remove_dev_prepare(struct device *dev,
 	cpus = cpumask_weight(policy->cpus);
 	up_read(&policy->rwsem);
 
-	else
+	} else {
 		policy->last_policy = policy->policy;
 	}
 
