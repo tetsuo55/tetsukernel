@@ -1125,9 +1125,14 @@ static void cpufreq_init_policy(struct cpufreq_policy *policy)
 
 	new_policy.governor = gov;
 
-	/* Use the default policy if its valid. */
-	if (cpufreq_driver->setpolicy)
-		cpufreq_parse_governor(gov->name, &new_policy.policy, NULL);
+	/* Use the default policy if there is no last_policy. */
+	if (cpufreq_driver->setpolicy) {
+		if (policy->last_policy)
+			new_policy.policy = policy->last_policy;
+		else
+			cpufreq_parse_governor(gov->name, &new_policy.policy,
+					       NULL);
+	}
 
 	/* set default policy */
 	ret = cpufreq_set_policy(policy, &new_policy);
@@ -1559,13 +1564,17 @@ static int __cpufreq_remove_dev_prepare(struct device *dev,
 		}
 	}
 
-	if (!cpufreq_driver->setpolicy)
+	if (!cpufreq_driver->setpolicy) {
 		strncpy(per_cpu(cpufreq_cpu_governor, cpu),
 			policy->governor->name, CPUFREQ_NAME_LEN);
 
 	down_read(&policy->rwsem);
 	cpus = cpumask_weight(policy->cpus);
 	up_read(&policy->rwsem);
+
+	else
+		policy->last_policy = policy->policy;
+	}
 
 	if (cpu != policy->cpu) {
 		sysfs_remove_link(&dev->kobj, "cpufreq");
