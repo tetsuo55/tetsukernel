@@ -14,11 +14,11 @@
  *
  * A very rough approximation to the sqrt() function.
  */
-unsigned long int_sqrt(unsigned long x)
+inline unsigned long int_sqrt(unsigned long x)
 {
 	unsigned long tmp;
 	unsigned long place;
-	unsigned long root;
+	unsigned long root = 0;
 	unsigned long remainder;
 
 	if (x <= 1)
