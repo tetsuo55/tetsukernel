@@ -969,6 +969,11 @@ static irqreturn_t sec_ts_irq_thread(int irq, void *ptr)
 	return IRQ_HANDLED;
 }
 
+	/* prevent CPU from entering deep sleep */
+	pm_qos_update_request(&ts->pm_qos_req, 100);
+
+	pm_qos_update_request(&ts->pm_qos_req, PM_QOS_DEFAULT_VALUE);
+
 int get_tsp_status(void)
 {
 	return 0;
@@ -985,6 +990,10 @@ void sec_ts_set_charger(bool enable)
 	u8 noise_mode_off[] = {0x00};
 	if (enable) {
 		input_info(true, &ts->client->dev, "sec_ts_set_charger : charger CONNECTED!!\n");
+
+		pm_qos_add_request(&ts->pm_qos_req, PM_QOS_CPU_DMA_LATENCY,
+			PM_QOS_DEFAULT_VALUE);
+
 		ret = sec_ts_i2c_write(ts, NOISE_MODE_CMD, noise_mode_on, sizeof(noise_mode_on));
 		if (ret < 0)
 			input_err(true, &ts->client->dev, "sec_ts_set_charger: fail to write NOISE_ON\n");
@@ -2055,6 +2064,7 @@ static int sec_ts_probe(struct i2c_client *client, const struct i2c_device_id *i
 	return 0;
 
 err_irq:
+	pm_qos_remove_request(&ts->pm_qos_req);
 	input_unregister_device(ts->input_dev);
 	ts->input_dev = NULL;
 err_input_register_device:
@@ -2375,6 +2385,8 @@ static int sec_ts_remove(struct i2c_client *client)
 #endif
 
 	free_irq(client->irq, ts);
+
+	pm_qos_remove_request(&ts->pm_qos_req);
 
 	input_mt_destroy_slots(ts->input_dev);
 	input_unregister_device(ts->input_dev);

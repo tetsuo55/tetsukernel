@@ -15,6 +15,7 @@
 
 #ifdef CONFIG_INPUT_BOOSTER
 #include <linux/input/input_booster.h>
+#include <linux/pm_qos.h>
 #endif
 
 #define SEC_TS_I2C_NAME "sec_ts"
@@ -494,6 +495,8 @@ struct sec_ts_data {
 	struct mutex lock;
 	struct mutex device_mutex;
 	struct mutex i2c_mutex;
+
+	struct pm_qos_request pm_qos_req;
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	struct early_suspend *early_suspend;
