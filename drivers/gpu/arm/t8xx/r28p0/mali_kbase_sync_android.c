@@ -463,7 +463,7 @@ int kbase_sync_fence_in_wait(struct kbase_jd_atom *katom)
 		/* We should cause the dependent jobs in the bag to be failed,
 		 * to do this we schedule the work queue to complete this job */
 	init_kthread_work(&katom->job_done_work, kbase_sync_fence_wait_worker);
-	queue_kthread_work(&kctx->worker, &katom->job_done_work);
+	queue_kthread_work(&katom->kctx->worker, &katom->job_done_work);
 	}
 
 	return 1;
