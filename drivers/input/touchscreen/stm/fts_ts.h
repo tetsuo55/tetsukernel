@@ -2,7 +2,6 @@
 #define _LINUX_FTS_TS_H_
 
 #include <linux/device.h>
-#include <linux/pm_qos.h>
 #include <linux/hrtimer.h>
 #include <linux/i2c/fts.h>
 #ifdef CONFIG_HAS_EARLYSUSPEND
@@ -358,7 +357,6 @@ struct fts_ts_info {
 	bool lowpower_mode;
 	bool deepsleep_mode;
 	int fts_power_state;
-	struct pm_qos_request pm_qos_req;
 #ifdef FTS_SUPPORT_STRINGLIB
 	unsigned char fts_mode;
 #endif
