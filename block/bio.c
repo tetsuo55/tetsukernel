@@ -1728,40 +1728,6 @@ static void bio_dirty_fn(struct work_struct *work)
 	}
 }
 
-void generic_start_io_acct(struct request_queue *q, int op,
-			   unsigned long sectors, struct hd_struct *part)
-{
-	const int sgrp = op_stat_group(op);
-
-	part_stat_lock();
-
-	update_io_ticks(part, jiffies);
-	part_stat_inc(part, ios[sgrp]);
-	part_stat_add(part, sectors[sgrp], sectors);
-	part_inc_in_flight(q, part, op_is_write(op));
-
-	part_stat_unlock();
-}
-EXPORT_SYMBOL(generic_start_io_acct);
-
-void generic_end_io_acct(struct request_queue *q, int req_op,
-			 struct hd_struct *part, unsigned long start_time)
-{
-	unsigned long now = jiffies;
-	unsigned long duration = now - start_time;
-	const int sgrp = op_stat_group(req_op);
-
-	part_stat_lock();
-
-	update_io_ticks(part, now);
-	part_stat_add(part, nsecs[sgrp], jiffies_to_nsecs(duration));
-	part_stat_add(part, time_in_queue, duration);
-	part_dec_in_flight(q, part, op_is_write(req_op));
-
-	part_stat_unlock();
-}
-EXPORT_SYMBOL(generic_end_io_acct);
-
 void bio_check_pages_dirty(struct bio *bio)
 {
 	struct bio_vec *bvec;
