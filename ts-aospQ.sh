@@ -49,7 +49,7 @@ DEFCONFIG=ts-a-kernel_defconfig
 DEFCONFIG_S7EDGE=hero2lte_defconfig
 DEFCONFIG_S7FLAT=herolte_defconfig
 
-export K_VERSION="v1.2T"
+export K_VERSION="v1.0T"
 export K_BASE="S5CSF1"
 export K_NAME="ThundeRStormS-Kernel"
 export REVISION="RC"
@@ -151,7 +151,7 @@ FUNC_BUILD_RAMDISK()
 	cd $RDIR/builds
 	mkdir temp
 	cp -rf aik/. temp
-	cp -rf LOS16/. temp
+	cp -rf LOS17/. temp
 	
 	rm -f temp/split_img/boot.img-zImage
 	rm -f temp/split_img/boot.img-dtb
@@ -260,7 +260,7 @@ echo "    CUSTOMIZABLE STOCK SAMSUNG KERNEL"
 echo ""
 echo "           Build Kernel for:"
 echo ""
-echo "S7 LOS16"
+echo "S7 LOS17"
 echo "(1) S7 Flat SM-G930F/FD"
 echo "(2) S7 Edge SM-G935F/FD"
 echo "(3) S7 Edge + Flat F/FD"
@@ -275,9 +275,9 @@ if [ $prompt == "1" ]; then
     KERNEL_DEFCONFIG=$DEFCONFIG_S7FLAT
     LOG=$FLAT_LOG
     ZIP_DATE=`date +%Y%m%d`
-    export KERNEL_VERSION="$K_NAME-$K_BASE-LOS16-$K_VERSION"
+    export KERNEL_VERSION="$K_NAME-$K_BASE-LOS17-$K_VERSION"
     echo "S7 Flat G930F Selected"
-    ZIP_NAME=$K_NAME-$MODEL-LOS16-$K_VERSION-$ZIP_DATE.zip
+    ZIP_NAME=$K_NAME-$MODEL-LOS17-$K_VERSION-$ZIP_DATE.zip
     MAIN
 elif [ $prompt == "2" ]; then
     MODEL=G935
@@ -285,9 +285,9 @@ elif [ $prompt == "2" ]; then
     KERNEL_DEFCONFIG=$DEFCONFIG_S7EDGE
     LOG=$EDGE_LOG
     ZIP_DATE=`date +%Y%m%d`
-    export KERNEL_VERSION="$K_NAME-$K_BASE-LOS16-$K_VERSION"
+    export KERNEL_VERSION="$K_NAME-$K_BASE-LOS17-$K_VERSION"
     echo "S7 Edge G935F Selected"
-    ZIP_NAME=$K_NAME-$MODEL-LOS16-$K_VERSION-$ZIP_DATE.zip
+    ZIP_NAME=$K_NAME-$MODEL-LOS17-$K_VERSION-$ZIP_DATE.zip
     MAIN
 elif [ $prompt == "3" ]; then
     MODEL=G935
@@ -295,16 +295,16 @@ elif [ $prompt == "3" ]; then
     KERNEL_DEFCONFIG=$DEFCONFIG_S7EDGE
     LOG=$EDGE_LOG
     ZIP_DATE=`date +%Y%m%d`
-    export KERNEL_VERSION="$K_NAME-$K_BASE-LOS16-$K_VERSION"
+    export KERNEL_VERSION="$K_NAME-$K_BASE-LOS17-$K_VERSION"
     echo "S7 EDGE + FLAT Selected"
     echo "Compiling EDGE ..."
     MAIN2
     MODEL=G930
     KERNEL_DEFCONFIG=$DEFCONFIG_S7FLAT
     LOG=$FLAT_LOG
-    export KERNEL_VERSION="$K_NAME-$K_BASE-LOS16-$K_VERSION"
+    export KERNEL_VERSION="$K_NAME-$K_BASE-LOS17-$K_VERSION"
     echo "Compiling FLAT ..."
-    ZIP_NAME=$K_NAME-G93X-LOS16-$K_VERSION-$ZIP_DATE.zip
+    ZIP_NAME=$K_NAME-G93X-LOS17-$K_VERSION-$ZIP_DATE.zip
     MAIN
 fi
 
