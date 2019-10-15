@@ -344,10 +344,13 @@ static inline void adjust_jiffies(unsigned long val, struct cpufreq_freqs *ci)
  *********************************************************************/
 
 static DEFINE_PER_CPU(unsigned long, freq_scale) = SCHED_CAPACITY_SCALE;
+static DEFINE_PER_CPU(unsigned long, max_freq_cpu);
 static DEFINE_PER_CPU(unsigned long, max_freq_scale) = SCHED_CAPACITY_SCALE;
+static DEFINE_PER_CPU(unsigned long, min_freq_scale);
 
 static void
-scale_freq_capacity(struct cpufreq_policy *policy, struct cpufreq_freqs *freqs)
+scale_freq_capacity(struct cpufreq_policy *policy, struct cpufreq_freqs *freqs,
+			unsigned long policy_max_freq, unsigned long max_freq)
 {
 	unsigned long cur = freqs ? freqs->new : policy->cur;
 	unsigned long scale = (cur << SCHED_CAPACITY_SHIFT) / policy->max;
