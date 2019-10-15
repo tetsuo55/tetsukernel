@@ -43,6 +43,23 @@ void disable_cpuidle(void)
 	off = 1;
 }
 
+unsigned int cpuidle_get_target_residency(int cpu, int state)
+{
+	struct cpuidle_device *dev = per_cpu(cpuidle_devices, cpu);
+	struct cpuidle_driver *drv = cpuidle_get_cpu_driver(dev);
+	struct cpuidle_state *s;
+	unsigned int target_residency = INT_MAX;
+
+	if (!drv)
+		goto exit_func;
+
+	s = &drv->states[state];
+	target_residency = s->target_residency;
+
+exit_func:
+	return target_residency;
+}
+
 /**
  * cpuidle_play_dead - cpu off-lining
  *
