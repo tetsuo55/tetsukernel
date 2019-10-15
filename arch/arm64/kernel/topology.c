@@ -11,6 +11,7 @@
  * for more details.
  */
 
+#include <linux/acpi.h>
 #include <linux/cpu.h>
 #include <linux/cpumask.h>
 #include <linux/init.h>
@@ -117,7 +118,12 @@ static void __init parse_cpu_capacity(struct device_node *cpu_node, int cpu)
 {
 	int ret;
 	u32 cpu_capacity;
-	if (cap_parsing_failed)
+	/*
+	 * on ACPI-based systems we need to use the default cpu capacity
+	 * until we have the necessary code to parse the cpu capacity, so
+	 * skip registering cpufreq notifier.
+	 */
+	if (!acpi_disabled || cap_parsing_failed)
 		return;
 	ret = of_property_read_u32(cpu_node,
 				   "capacity-dmips-mhz",
