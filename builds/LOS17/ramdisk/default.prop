@@ -86,6 +86,7 @@ ro.config.hw_power_saving=1
 ring.delay=0
 fingerprint.unlock=1
 persist.sys.purgeable_assets=1
+persist.sys.ui.hw true
 
 # Early SF configuration
 debug.sf.early_phase_offset_ns=500000
