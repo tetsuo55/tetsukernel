@@ -39,8 +39,8 @@ int get_real_max_freq(cluster_type cluster);
 #endif
 
 bool is_cpu_thermal = false;
-static int enter_little_thermal_temp = 55; 	// was 60
-static int exit_little_thermal_temp = 45;	// was 55
+static int enter_little_thermal_temp = 60;
+static int exit_little_thermal_temp = 55;
 
 struct exynos_thermal_zone {
 	enum thermal_device_mode mode;
@@ -70,7 +70,7 @@ static ssize_t store_little_thermal_temp(struct kobject *kobj, struct attribute 
 	if (!sscanf(buf, "%8d", &thermal_temp))
 		return -EINVAL;
 
-	if (thermal_temp < 30 || thermal_temp > 80) {
+	if (thermal_temp < 40 || thermal_temp > 90) {
 		pr_err("%s: invalid value (%d)\n", __func__, thermal_temp);
 		return -EINVAL;
 	}
