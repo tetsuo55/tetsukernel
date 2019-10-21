@@ -28,7 +28,8 @@ export BUILD_CROSS_COMPILE=~/kernel/toolchain/aarch64-linux-android-4.9-o-mr1-io
 #export BUILD_CROSS_COMPILE=~/kernel/toolchain/aarch64-linux-android-7.0-kernel/bin/aarch64-linux-android-
 #export BUILD_CROSS_COMPILE=~/kernel/toolchain/gcc-linaro-4.9.4-2017.01-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
 export CROSS_COMPILE="${CCACHE} $BUILD_CROSS_COMPILE"
-export BUILD_JOB_NUMBER=`grep processor /proc/cpuinfo|wc -l`
+BUILD_JOB_NUMBER="$(grep -c '^processor' /proc/cpuinfo)"
+export BUILD_JOB_NUMBER
 
 export ANDROID_MAJOR_VERSION=o
 export PLATFORM_VERSION=8.0.0
@@ -73,36 +74,36 @@ FUNC_DELETE_PLACEHOLDERS()
 
 FUNC_CLEAN_DTB()
 {
-	if ! [ -d $RDIR/arch/$ARCH/boot/dts ] ; then
-		echo "no directory : "$RDIR/arch/$ARCH/boot/dts""
+	if ! [ -d "$RDIR"/arch/$ARCH/boot/dts ] ; then
+		echo "no directory : ""$RDIR"/arch/$ARCH/boot/dts""
 	else
-		echo "rm files in : "$RDIR/arch/$ARCH/boot/dts/*.dtb""
-		rm $RDIR/arch/$ARCH/boot/dts/*.dtb
-		rm $RDIR/arch/$ARCH/boot/dtb/*.dtb
-		rm $RDIR/arch/$ARCH/boot/boot.img-dtb
-		rm $RDIR/arch/$ARCH/boot/boot.img-zImage
+		echo "rm files in : ""$RDIR"/arch/$ARCH/boot/dts/*.dtb""
+		rm "$RDIR"/arch/$ARCH/boot/dts/*.dtb
+		rm "$RDIR"/arch/$ARCH/boot/dtb/*.dtb
+		rm "$RDIR"/arch/$ARCH/boot/boot.img-dtb
+		rm "$RDIR"/arch/$ARCH/boot/boot.img-zImage
 	fi
 }
 
 FUNC_BUILD_KERNEL()
 {
 	echo ""
-        echo "build common config="$KERNEL_DEFCONFIG ""
-        echo "build variant config="$MODEL ""
+        echo "build common config=""$KERNEL_DEFCONFIG" ""
+        echo "build variant config=""$MODEL" ""
 
-	cp -f $RDIR/arch/$ARCH/configs/$DEFCONFIG $RDIR/arch/$ARCH/configs/tmp_defconfig
-	cat $RDIR/arch/$ARCH/configs/$KERNEL_DEFCONFIG >> $RDIR/arch/$ARCH/configs/tmp_defconfig
+	cp -f "$RDIR"/arch/$ARCH/configs/$DEFCONFIG "$RDIR"/arch/$ARCH/configs/tmp_defconfig
+	cat "$RDIR"/arch/$ARCH/configs/"$KERNEL_DEFCONFIG" >> "$RDIR"/arch/$ARCH/configs/tmp_defconfig
 
 	#FUNC_CLEAN_DTB
 
-	make -j$BUILD_JOB_NUMBER ARCH=$ARCH \
+	make -j"$BUILD_JOB_NUMBER" ARCH=$ARCH \
 			 \
 			tmp_defconfig || exit -1
-	make -j$BUILD_JOB_NUMBER ARCH=$ARCH \
+	make -j"$BUILD_JOB_NUMBER" ARCH=$ARCH \
 			 || exit -1
 	echo ""
 
-	rm -f $RDIR/arch/$ARCH/configs/tmp_defconfig
+	rm -f "$RDIR"/arch/$ARCH/configs/tmp_defconfig
 }
 
 FUNC_BUILD_DTB()
@@ -125,8 +126,8 @@ FUNC_BUILD_DTB()
 		exit 1
 		;;
 	esac
-	mkdir -p $OUTDIR $DTBDIR
-	cd $DTBDIR || {
+	mkdir -p "$OUTDIR" "$DTBDIR"
+	cd "$DTBDIR" || {
 		echo "Unable to cd to $DTBDIR!"
 		exit 1
 	}
@@ -134,12 +135,12 @@ FUNC_BUILD_DTB()
 	echo "Processing dts files."
 	for dts in $DTSFILES; do
 		echo "=> Processing: ${dts}.dts"
-		${CROSS_COMPILE}cpp -nostdinc -undef -x assembler-with-cpp -I "$INCDIR" "$DTSDIR/${dts}.dts" > "${dts}.dts"
+		"${CROSS_COMPILE}"cpp -nostdinc -undef -x assembler-with-cpp -I "$INCDIR" "$DTSDIR/${dts}.dts" > "${dts}.dts"
 		echo "=> Generating: ${dts}.dtb"
 		$DTCTOOL -p $DTB_PADDING -i "$DTSDIR" -O dtb -o "${dts}.dtb" "${dts}.dts"
 	done
 	echo "Generating dtb.img."
-	$RDIR/scripts/dtbtool_exynos/dtbtool -o "$OUTDIR/dtb.img" -d "$DTBDIR/" -s $PAGE_SIZE
+	"$RDIR"/scripts/dtbtool_exynos/dtbtool -o "$OUTDIR/dtb.img" -d "$DTBDIR/" -s $PAGE_SIZE
 	echo "Done."
 }
 
@@ -147,19 +148,19 @@ FUNC_BUILD_RAMDISK()
 {
 	echo ""
 	echo "Building Ramdisk"
-	mv $RDIR/arch/$ARCH/boot/Image $RDIR/arch/$ARCH/boot/boot.img-zImage
-	mv $RDIR/arch/$ARCH/boot/dtb.img $RDIR/arch/$ARCH/boot/boot.img-dtb
+	mv "$RDIR"/arch/$ARCH/boot/Image "$RDIR"/arch/$ARCH/boot/boot.img-zImage
+	mv "$RDIR"/arch/$ARCH/boot/dtb.img "$RDIR"/arch/$ARCH/boot/boot.img-dtb
 	
-	cd $RDIR/builds
+	cd "$RDIR"/builds || exit
 	mkdir temp
 	cp -rf aik/. temp
 	cp -rf LOS16/. temp
 	
 	rm -f temp/split_img/boot.img-zImage
 	rm -f temp/split_img/boot.img-dtb
-	mv $RDIR/arch/$ARCH/boot/boot.img-zImage temp/split_img/boot.img-zImage
-	mv $RDIR/arch/$ARCH/boot/boot.img-dtb temp/split_img/boot.img-dtb
-	cd temp
+	mv "$RDIR"/arch/$ARCH/boot/boot.img-zImage temp/split_img/boot.img-zImage
+	mv "$RDIR"/arch/$ARCH/boot/boot.img-dtb temp/split_img/boot.img-dtb
+	cd temp || exit
 
 	case $MODEL in
 	G935)
@@ -179,27 +180,27 @@ FUNC_BUILD_RAMDISK()
 
 	./repackimg.sh
 
-	cp -f image-new.img $RDIR/builds
+	cp -f image-new.img "$RDIR"/builds
 	cd ..
 	rm -rf temp
 	echo SEANDROIDENFORCE >> image-new.img
-	mv image-new.img $MODEL-boot.img
+	mv image-new.img "$MODEL"-boot.img
 }
 
 FUNC_BUILD_FLASHABLES()
 {
-	cd $RDIR/builds
+	cd "$RDIR"/builds || exit
 	mkdir temp2
 	cp -rf zip-a/common/. temp2
     	mv *.img temp2/
-	cd temp2
+	cd temp2 || exit
 	echo ""
 	echo "Compressing kernels..."
 	tar cv *.img | xz -9 > kernel.tar.xz
 	mv kernel.tar.xz ts/
 	rm -f *.img
 
-	zip -9 -r ../$ZIP_NAME *
+	zip -9 -r ../"$ZIP_NAME" *
 
 	cd ..
     	rm -rf temp2
@@ -215,17 +216,17 @@ MAIN()
 {
 
 (
-	START_TIME=`date +%s`
+        START=$(date +"%s")
 	FUNC_DELETE_PLACEHOLDERS
 	FUNC_BUILD_KERNEL
 	FUNC_BUILD_DTB
 	FUNC_BUILD_RAMDISK
 	FUNC_BUILD_FLASHABLES
-	END_TIME=`date +%s`
-	let "ELAPSED_TIME=$END_TIME-$START_TIME"
-	echo "Total compile time is $ELAPSED_TIME seconds"
+        END=$(date +"%s")
+        DIFF=$((END - START))
+        echo -e "Build took $((DIFF / 60)) minute(s) and $((DIFF % 60)) seconds."
 	echo ""
-) 2>&1 | tee -a ./$LOG
+) 2>&1 | tee -a ./"$LOG"
 
 	echo "Your flasheable release can be found in the build folder"
 	echo ""
@@ -235,16 +236,16 @@ MAIN2()
 {
 
 (
-	START_TIME=`date +%s`
+        START=$(date +"%s")
 	FUNC_DELETE_PLACEHOLDERS
 	FUNC_BUILD_KERNEL
 	FUNC_BUILD_DTB
 	FUNC_BUILD_RAMDISK
-	END_TIME=`date +%s`
-	let "ELAPSED_TIME=$END_TIME-$START_TIME"
-	echo "Total compile time is $ELAPSED_TIME seconds"
+        END=$(date +"%s")
+        DIFF=$((END - START))
+        echo -e "Build took $((DIFF / 60)) minute(s) and $((DIFF % 60)) seconds."
 	echo ""
-) 2>&1 | tee -a ./$LOG
+) 2>&1 | tee -a ./"$LOG"
 
 	echo "Your flasheable release can be found in the build folder"
 	echo ""
@@ -271,32 +272,32 @@ echo ""
 read -p "Select an option to compile the kernel " prompt
 
 
-if [ $prompt == "1" ]; then
+if [ "$prompt" == "1" ]; then
     MODEL=G930
     DEVICE=$S7DEVICE
     KERNEL_DEFCONFIG=$DEFCONFIG_S7FLAT
     LOG=$FLAT_LOG
-    ZIP_DATE=`date +%Y%m%d`
+    ZIP_DATE=$(date +%Y%m%d)
     export KERNEL_VERSION="$K_NAME-$K_BASE-LOS16-$K_VERSION"
     echo "S7 Flat G930F Selected"
     ZIP_NAME=$K_NAME-$MODEL-LOS16-$K_VERSION-$ZIP_DATE.zip
     MAIN
-elif [ $prompt == "2" ]; then
+elif [ "$prompt" == "2" ]; then
     MODEL=G935
     DEVICE=$S7DEVICE
     KERNEL_DEFCONFIG=$DEFCONFIG_S7EDGE
     LOG=$EDGE_LOG
-    ZIP_DATE=`date +%Y%m%d`
+    ZIP_DATE=$(date +%Y%m%d)
     export KERNEL_VERSION="$K_NAME-$K_BASE-LOS16-$K_VERSION"
     echo "S7 Edge G935F Selected"
     ZIP_NAME=$K_NAME-$MODEL-LOS16-$K_VERSION-$ZIP_DATE.zip
     MAIN
-elif [ $prompt == "3" ]; then
+elif [ "$prompt" == "3" ]; then
     MODEL=G935
     DEVICE=$S7DEVICE
     KERNEL_DEFCONFIG=$DEFCONFIG_S7EDGE
     LOG=$EDGE_LOG
-    ZIP_DATE=`date +%Y%m%d`
+    ZIP_DATE=$(date +%Y%m%d)
     export KERNEL_VERSION="$K_NAME-$K_BASE-LOS16-$K_VERSION"
     echo "S7 EDGE + FLAT Selected"
     echo "Compiling EDGE ..."
