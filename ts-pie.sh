@@ -12,21 +12,9 @@ export ARCH=arm64
 export SUBARCH=arm64
 CCACHE="$(command -v ccache)"
 export CCACHE
-# NO WORKS export BUILD_CROSS_COMPILE=~/kernel/toolchain/gcc-linaro-5.5.0-2017.10-i686_aarch64-linux-gnu/bin/aarch64-linux-gnu-gcc
-# export BUILD_CROSS_COMPILE=~/kernel/toolchain/aarch64-linux-android-4.9-master/bin/aarch64-linux-android-
-export BUILD_CROSS_COMPILE=~/kernel/toolchain/aarch64-linux-android-4.9-o-mr1-iot-preview-8/bin/aarch64-linux-android-
-# export BUILD_CROSS_COMPILE=~/kernel/toolchain/aarch64-linux-android-4.9/bin/aarch64-linux-android-
-# NO WORKS export BUILD_CROSS_COMPILE=~kernel/toolchain/arm-eabi-4.8-master/bin/arm-eabi-
-# NO WORKS export BUILD_CROSS_COMPILE=~/kernel/toolchain/arm32_arm64_cross_toolchain-master/bin/aarch64-linux-aarch64-linux-
-# BL - export BUILD_CROSS_COMPILE=~/kernel/toolchain/aarch64-linux-gnu-7.3-master/bin/aarch64-linux-gnu-
-# BL export BUILD_CROSS_COMPILE=~/kernel/toolchain/aarch64-linaro-linux-android-6.3.1/bin/aarch64-linux-android-
-# WORKS export BUILD_CROSS_COMPILE=~/kernel/toolchain/aarch64-linux-android-4.9-945/bin/aarch64-linux-android-
-#export BUILD_CROSS_COMPILE=~/kernel/toolchain/aarch64-sabermod-7.0/bin/aarch64-
-#export BUILD_CROSS_COMPILE=~/kernel/kernel/toolchain/aarch64-uber-linux-android-4.9.4/bin/aarch64-linux-android-
-#export BUILD_CROSS_COMPILE=~/kernel/toolchain/aarch64-linux-android-6.3/bin/aarch64-linux-android-
-#export BUILD_CROSS_COMPILE=~/kernel/toolchain/linaro-7.2.1-master/bin/arm-linaro-linux-androideabi-
-#export BUILD_CROSS_COMPILE=~/kernel/toolchain/aarch64-linux-android-7.0-kernel/bin/aarch64-linux-android-
-#export BUILD_CROSS_COMPILE=~/kernel/toolchain/gcc-linaro-4.9.4-2017.01-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
+
+export BUILD_CROSS_COMPILE=~/kernel/toolchain/aarch64-linux-android-4.9/bin/aarch64-linux-android-
+
 export CROSS_COMPILE="${CCACHE} $BUILD_CROSS_COMPILE"
 BUILD_JOB_NUMBER="$(grep -c '^processor' /proc/cpuinfo)"
 export BUILD_JOB_NUMBER
