@@ -57,6 +57,9 @@
 #include <linux/fs.h>
 #include <asm/uaccess.h>
 
+/* ioctl */
+#include "f_conn_gadget.ioctl.h"
+
 /* platform specific definitions */
 /* ex) #define __ANDROID__ */
 
@@ -73,9 +76,6 @@
 
 #define CONN_GADGET_DEFAULT_TRANSFER_SIZE	(4 * 1024)
 #define CONN_GADGET_DEFAULT_Q_SIZE 		(16 * (CONN_GADGET_RX_REQ_MAX))
-
-/* ioctl */
-#include "f_conn_gadget.ioctl.h"
 
 static const char conn_gadget_shortname[] = CONN_GADGET_SHORTNAME;
 
