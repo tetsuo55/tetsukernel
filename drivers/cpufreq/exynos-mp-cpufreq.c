@@ -107,10 +107,10 @@ static int cluster1_all_cores = 0;
 static unsigned int freq_min[CL_END] __read_mostly;	/* Minimum (Big/Little) clock frequency */
 static unsigned int freq_max[CL_END] __read_mostly;	/* Maximum (Big/Little) clock frequency */
 
-static int min_flexible_freq = 1352000;
-static int max_flexible_freq = 2080000;
-static int min_flexible_freq_l = 442000;
-static int max_flexible_freq_l = 1378000;
+static int min_flexible_freq = 208000;			// 1352000
+static int max_flexible_freq = 2600000;			// 2080000
+static int min_flexible_freq_l = 130000;
+static int max_flexible_freq_l = 1690000;
 
 enum cpu_dvfs_mode {
 	BATTERY_MODE = 0,
