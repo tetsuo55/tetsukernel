@@ -109,6 +109,8 @@ static unsigned int freq_max[CL_END] __read_mostly;	/* Maximum (Big/Little) cloc
 
 static int min_flexible_freq = 1352000;
 static int max_flexible_freq = 2080000;
+static int min_flexible_freq_l = 442000;
+static int max_flexible_freq_l = 1378000;
 
 enum cpu_dvfs_mode {
 	BATTERY_MODE = 0,
@@ -131,6 +133,7 @@ static bool suspend_prepared = false;
 static bool hmp_boosted = false;
 #endif
 static bool cluster1_hotplugged = false;
+static bool cluster0_hotplugged = false;
 extern bool is_cpu_thermal;
 #endif
 static bool in_worque = false;
@@ -1439,9 +1442,11 @@ static void save_cpufreq_min_limit(int input)
 					hmp_boosted = true;
 			}
 			cluster1_input = min(cluster1_input, (int)freq_max[CL_ONE]);
+			cluster0_input = min(cluster0_input, (int)freq_max[CL_ZERO]);
 		} else
 #endif
 			cluster1_input = min(cluster1_input, min_flexible_freq);
+			cluster0_input = min(cluster0_input, min_flexible_freq_l);
 		if (cluster1_input >= exynos_info[CL_ONE]->boost_freq)
 			cluster0_input = core_max_qos_const[CL_ZERO].default_value;
 		else
@@ -1529,10 +1534,10 @@ static void enable_nonboot_cluster_cpus(void) 	// oryginal
 static void disable_nonboot_cluster_cpus(void) 	// oryginal
 // void disable_nonboot_cluster_cpus(void)	// added
 {
-//	pm_qos_update_request(&cpufreq_cpu_hotplug_max_request, NR_CLUST1_CPUS); 	// oryginal
-//	pm_qos_update_request(&cpufreq_cpu_hotplug_max_request, NR_CLUST0_CPUS); 	// added
-	pm_qos_update_request(&cpufreq_cpu_hotplug_max_request, NR_CLUST1_CPUS + 1); 	// big cpu 3 cores down when screen is off
-	pm_qos_update_request(&cpufreq_cpu_hotplug_max_request, NR_CLUST0_CPUS + 1); 	// little cpu - 3 cores down when screen is off
+	pm_qos_update_request(&cpufreq_cpu_hotplug_max_request, NR_CLUST1_CPUS); 	// oryginal
+	pm_qos_update_request(&cpufreq_cpu_hotplug_max_request, NR_CLUST0_CPUS); 	// added
+//	pm_qos_update_request(&cpufreq_cpu_hotplug_max_request, NR_CLUST1_CPUS + 1); 	// big cpu 3 cores down when screen is off
+//	pm_qos_update_request(&cpufreq_cpu_hotplug_max_request, NR_CLUST0_CPUS + 1); 	// little cpu - 3 cores down when screen is off
 }
 
 static void save_cpufreq_max_limit(int input)
@@ -1549,7 +1554,8 @@ static void save_cpufreq_max_limit(int input)
 			cluster1_input = max(cluster1_input, (int)freq_min[CL_ONE]);
 		else
 			cluster1_input = max(cluster1_input, max_flexible_freq);
-		cluster0_input = core_max_qos_const[CL_ZERO].default_value;
+			cluster0_input = max(cluster0_input, max_flexible_freq_l);
+		/* cluster0_input = core_max_qos_const[CL_ZERO].default_value; */
 	} else if (cluster1_input < (int)freq_min[CL_ONE]) {
 		if (cluster1_input < 0) {
 			if (cluster1_hotplugged) {
