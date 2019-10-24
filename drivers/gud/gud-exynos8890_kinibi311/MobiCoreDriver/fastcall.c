@@ -721,7 +721,7 @@ int mc_switch_core(int cpu)
 	mc_dev_devel("<- cmd=0x%08x, core_id=0x%08x\n",
 		     fc_switch_core.as_in.cmd, fc_switch_core.as_in.core_id);
 	/* ExySp: for sos performance */
-	mc_dev_info("<- cpu=0x%08x, active_cpu=0x%08x\n",
+	mc_dev_devel("<- cpu=0x%08x, active_cpu=0x%08x\n",
 		     cpu, active_cpu);
 	mc_fastcall(&fc_switch_core.as_generic);
 	ret = convert_fc_ret(fc_switch_core.as_out.ret);
