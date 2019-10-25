@@ -1919,7 +1919,7 @@ config CPU_FREQ_GOV_SCHED
 
 	  If in doubt, say N.
 
-config CPU_INPUT_BOOST
+config CPU_INPUT_BOOST_8890
 	bool "CPU Input Boost"
 	help
 	  Boosts the CPU on touchscreen and touchpad input, and allows for
