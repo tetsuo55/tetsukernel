@@ -57,8 +57,8 @@
 #include <soc/samsung/ect_parser.h>
 #include <soc/samsung/exynos-pmu.h>
 
-#define POWER_COEFF_15P		68 /* percore param */
-#define POWER_COEFF_7P		10 /* percore  param */
+#define POWER_COEFF_15P		80 /* percore param 68 */
+#define POWER_COEFF_7P		16 /* percore param 10 */
 
 /* added voltage */
 #ifdef CONFIG_SOC_EXYNOS8890
