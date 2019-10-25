@@ -110,7 +110,7 @@ static unsigned int freq_max[CL_END] __read_mostly;	/* Maximum (Big/Little) cloc
 static int min_flexible_freq = 208000;			// 1352000
 static int max_flexible_freq = 2600000;			// 2080000
 static int min_flexible_freq_l = 130000;
-static int max_flexible_freq_l = 1690000;
+static int max_flexible_freq_l = 1586000;
 
 enum cpu_dvfs_mode {
 	BATTERY_MODE = 0,
