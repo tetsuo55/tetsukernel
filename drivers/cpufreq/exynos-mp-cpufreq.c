@@ -57,8 +57,8 @@
 #include <soc/samsung/ect_parser.h>
 #include <soc/samsung/exynos-pmu.h>
 
-#define POWER_COEFF_15P		80 /* percore param 68 */
-#define POWER_COEFF_7P		16 /* percore param 10 */
+#define POWER_COEFF_15P		60 /* percore param 68 */
+#define POWER_COEFF_7P		6  /* percore param 10 */
 
 /* added voltage */
 #ifdef CONFIG_SOC_EXYNOS8890
@@ -107,18 +107,6 @@ static int cluster1_all_cores = 0;
 static unsigned int freq_min[CL_END] __read_mostly;	/* Minimum (Big/Little) clock frequency */
 static unsigned int freq_max[CL_END] __read_mostly;	/* Maximum (Big/Little) clock frequency */
 
-static int min_flexible_freq = 208000;			// 1352000
-static int max_flexible_freq = 2600000;			// 2080000
-static int min_flexible_freq_l = 130000;
-static int max_flexible_freq_l = 1586000;
-
-enum cpu_dvfs_mode {
-	BATTERY_MODE = 0,
-	BALANCE_MODE,
-	PERFORMANCE_MODE,
-};
-static enum cpu_dvfs_mode current_mode = BALANCE_MODE;
-
 static struct exynos_dvfs_info *exynos_info[CL_END];
 static unsigned int volt_offset;
 static struct cpufreq_freqs *freqs[CL_END];
@@ -133,8 +121,7 @@ static bool suspend_prepared = false;
 static bool hmp_boosted = false;
 #endif
 static bool cluster1_hotplugged = false;
-static bool cluster0_hotplugged = false;
-extern bool is_cpu_thermal;
+/* static bool cluster0_hotplugged = false; */
 #endif
 static bool in_worque = false;
 
@@ -1433,20 +1420,16 @@ static void save_cpufreq_min_limit(int input)
 
 	if (cluster1_input >= (int)freq_min[CL_ONE]) {
 #ifdef CONFIG_SCHED_HMP
-		if (!is_cpu_thermal && current_mode == PERFORMANCE_MODE) {
-			if (!hmp_boosted) {
-				if (set_hmp_boost(1) < 0)
-					pr_err("%s: failed HMP boost enable\n",
-								__func__);
-				else
-					hmp_boosted = true;
-			}
+		if (!hmp_boosted) {
+			if (set_hmp_boost(1) < 0)
+				pr_err("%s: failed HMP boost enable\n",
+							__func__);
+			else
+				hmp_boosted = true;
+		}
+#endif
 			cluster1_input = min(cluster1_input, (int)freq_max[CL_ONE]);
 			cluster0_input = min(cluster0_input, (int)freq_max[CL_ZERO]);
-		} else
-#endif
-			cluster1_input = min(cluster1_input, min_flexible_freq);
-			cluster0_input = min(cluster0_input, min_flexible_freq_l);
 		if (cluster1_input >= exynos_info[CL_ONE]->boost_freq)
 			cluster0_input = core_max_qos_const[CL_ZERO].default_value;
 		else
@@ -1550,12 +1533,8 @@ static void save_cpufreq_max_limit(int input)
 			cluster1_hotplugged = false;
 		}
 
-		if (is_cpu_thermal && current_mode == BATTERY_MODE)
-			cluster1_input = max(cluster1_input, (int)freq_min[CL_ONE]);
-		else
-			cluster1_input = max(cluster1_input, max_flexible_freq);
-			cluster0_input = max(cluster0_input, max_flexible_freq_l);
-		/* cluster0_input = core_max_qos_const[CL_ZERO].default_value; */
+		cluster1_input = max(cluster1_input, (int)freq_min[CL_ONE]);
+		cluster0_input = core_max_qos_const[CL_ZERO].default_value;
 	} else if (cluster1_input < (int)freq_min[CL_ONE]) {
 		if (cluster1_input < 0) {
 			if (cluster1_hotplugged) {
@@ -1935,30 +1914,6 @@ static ssize_t store_cluster1_all_cores_max_freq(struct kobject *kobj, struct at
 }
 /* end */
 
-static ssize_t show_cpu_dvfs_mode_control(struct kobject *kobj,
-				struct attribute *attr, char *buf)
-{
-	return snprintf(buf, PAGE_SIZE, "%u\n", current_mode);
-}
-
-static ssize_t store_cpu_dvfs_mode_control(struct kobject *kobj, struct attribute *attr,
-					const char *buf, size_t count)
-{
-	int mode;
-
-	if (!sscanf(buf, "%8d", &mode))
-		return -EINVAL;
-
-	if (mode < 0 || mode > 2) {
-		pr_err("%s: invalid value (%d)\n", __func__, mode);
-		return -EINVAL;
-	}
-
-	current_mode = mode;
-
-	return count;
-}
-
 define_one_global_ro(cluster1_freq_table);
 define_one_global_rw(cluster1_min_freq);
 define_one_global_rw(cluster1_max_freq);
@@ -1968,7 +1923,6 @@ define_one_global_ro(cluster0_freq_table);
 define_one_global_rw(cluster0_min_freq);
 define_one_global_rw(cluster0_max_freq);
 define_one_global_rw(cluster0_volt_table);		/* added voltage */
-define_one_global_rw(cpu_dvfs_mode_control);		/* DVFS control */
 
 static struct attribute *mp_attributes[] = {
 	&cluster1_freq_table.attr,
@@ -1980,7 +1934,6 @@ static struct attribute *mp_attributes[] = {
 	&cluster0_min_freq.attr,
 	&cluster0_max_freq.attr,
 	&cluster0_volt_table.attr,			/* added voltage */
-	&cpu_dvfs_mode_control.attr,			/* DVFS control */	
 	NULL
 };
 
