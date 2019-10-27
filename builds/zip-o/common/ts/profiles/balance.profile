@@ -10,7 +10,7 @@
    chmod 0644 /sys/devices/system/cpu/cpu0/cpufreq/interactive/go_hispeed_load
    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/go_hispeed_load 90
    chmod 0644 /sys/devices/system/cpu/cpu0/cpufreq/interactive/above_hispeed_delay
-   write /sys/devices/system/cpu/cpu0/cpufreq/interactive/above_hispeed_delay "25000 858000:20000 1066000:35000"
+   write /sys/devices/system/cpu/cpu0/cpufreq/interactive/above_hispeed_delay "25000 858000:20000 1066000:30000"
    chmod 0644 /sys/devices/system/cpu/cpu0/cpufreq/interactive/timer_rate
    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/timer_rate 30000
    chmod 0644 /sys/devices/system/cpu/cpu0/cpufreq/interactive/hispeed_freq
@@ -18,9 +18,9 @@
    chmod 0644 /sys/devices/system/cpu/cpu0/cpufreq/interactive/timer_slack
    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/timer_slack 20000
    chmod 0644 /sys/devices/system/cpu/cpu0/cpufreq/interactive/target_loads
-   write /sys/devices/system/cpu/cpu0/cpufreq/interactive/target_loads "75 962000:85"
+   write /sys/devices/system/cpu/cpu0/cpufreq/interactive/target_loads "75 858000:85"
    chmod 0644 /sys/devices/system/cpu/cpu0/cpufreq/interactive/min_sample_time
-   write /sys/devices/system/cpu/cpu0/cpufreq/interactive/min_sample_time 45000
+   write /sys/devices/system/cpu/cpu0/cpufreq/interactive/min_sample_time 40000
    chmod 0644 /sys/devices/system/cpu/cpu0/cpufreq/interactive/mode
    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/mode 0
    chmod 0644 /sys/devices/system/cpu/cpu0/cpufreq/interactive/boost
@@ -42,7 +42,7 @@
    chmod 0644 /sys/devices/system/cpu/cpu4/cpufreq/interactive/go_hispeed_load
    write /sys/devices/system/cpu/cpu4/cpufreq/interactive/go_hispeed_load 93
    chmod 0644 /sys/devices/system/cpu/cpu4/cpufreq/interactive/above_hispeed_delay
-   write /sys/devices/system/cpu/cpu4/cpufreq/interactive/above_hispeed_delay "55000 1248000:75000 1664000:30000"
+   write /sys/devices/system/cpu/cpu4/cpufreq/interactive/above_hispeed_delay "60000 1248000:75000 1664000:30000"
    chmod 0644 /sys/devices/system/cpu/cpu4/cpufreq/interactive/timer_rate
    write /sys/devices/system/cpu/cpu4/cpufreq/interactive/timer_rate 30000
    chmod 0644 /sys/devices/system/cpu/cpu4/cpufreq/interactive/hispeed_freq
@@ -52,7 +52,7 @@
    chmod 0644 /sys/devices/system/cpu/cpu4/cpufreq/interactive/target_loads
    write /sys/devices/system/cpu/cpu4/cpufreq/interactive/target_loads "80 1040000:81 1352000:87 1664000:90"
    chmod 0644 /sys/devices/system/cpu/cpu4/cpufreq/interactive/min_sample_time
-   write /sys/devices/system/cpu/cpu4/cpufreq/interactive/min_sample_time 45000
+   write /sys/devices/system/cpu/cpu4/cpufreq/interactive/min_sample_time 40000
    chmod 0644 /sys/devices/system/cpu/cpu4/cpufreq/interactive/mode
    write /sys/devices/system/cpu/cpu4/cpufreq/interactive/mode 0
    chmod 0644 /sys/devices/system/cpu/cpu4/cpufreq/interactive/boost
@@ -124,11 +124,11 @@
    write /sys/block/mmcblk0/queue/read_ahead_kb 512
 
    # Wakelocks
-   write /sys/module/wakeup/parameters/enable_sensorhub_wl 0
-   write /sys/module/wakeup/parameters/enable_ssp_wl 0
-   write /sys/module/wakeup/parameters/enable_bcmdhd4359_wl 0
-   write /sys/module/wakeup/parameters/enable_bluedroid_timer_wl 0
-   write /sys/module/wakeup/parameters/enable_wlan_wake_wl 0
+   write /sys/module/wakeup/parameters/enable_sensorhub_wl 1
+   write /sys/module/wakeup/parameters/enable_ssp_wl 1
+   write /sys/module/wakeup/parameters/enable_bcmdhd4359_wl 1
+   write /sys/module/wakeup/parameters/enable_bluedroid_timer_wl 1
+   write /sys/module/wakeup/parameters/enable_wlan_wake_wl 1
    write /sys/module/sec_battery/parameters/wl_polling 4
    write /sys/module/sec_nfc/parameters/wl_nfc 1
 

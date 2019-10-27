@@ -68,6 +68,7 @@ ro.config.hw_power_saving=1
 ring.delay=0
 fingerprint.unlock=1
 persist.sys.purgeable_assets=1
+persist.sys.ui.hw=true
 # persist.sys.usb.config=none
 
 #

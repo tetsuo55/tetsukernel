@@ -38,7 +38,8 @@ abort() {
 }
 
 # Initialice TSkernel folder
-mkdir -p -m 777 /data/.tskernel/apk 2>/dev/null
+rm -rf /data/.morokernel
+mkdir -p -m 777 /data/.tskernel 2>/dev/null
 
 # Variables
 BB=/sbin/busybox
@@ -96,6 +97,7 @@ if [ "$(file_getprop /tmp/aroma/menu.prop chk3)" == 1 ]; then
 
 # DELETE OLDER APPS
 	rm -f /sdcard/ThunderTweaks/*.*
+	rm -rf /data/.mtweaks*
 ##	rm -rf /sdcard/ThunderTweaks/*.*
 
 # COPY NEW APP

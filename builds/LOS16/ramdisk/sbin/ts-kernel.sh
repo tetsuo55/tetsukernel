@@ -14,7 +14,7 @@ mount -o remount,rw /system;
 mount -o remount,rw /data;
 mount -o remount,rw /;
 
-# Create morokernel folder
+# Create TSkernel folder
 if [ ! -d $TS_DIR ]; then
 	mkdir -p $TS_DIR;
 fi
