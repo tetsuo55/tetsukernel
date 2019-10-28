@@ -1177,6 +1177,7 @@ struct sched_avg {
 #endif
 #endif
 	u32 usage_avg_sum;
+	struct task_struct *task;
 };
 
 #ifdef CONFIG_SCHEDSTATS
