@@ -123,7 +123,7 @@ FUNC_BUILD_DTB()
 	echo "Processing dts files."
 	for dts in $DTSFILES; do
 		echo "=> Processing: ${dts}.dts"
-		"${CROSS_COMPILE}"cpp -nostdinc -undef -x assembler-with-cpp -I "$INCDIR" "$DTSDIR/${dts}.dts" > "${dts}.dts"
+		"${BUILD_CROSS_COMPILE}"cpp -nostdinc -undef -x assembler-with-cpp -I "$INCDIR" "$DTSDIR/${dts}.dts" > "${dts}.dts"
 		echo "=> Generating: ${dts}.dtb"
 		$DTCTOOL -p $DTB_PADDING -i "$DTSDIR" -O dtb -o "${dts}.dtb" "${dts}.dts"
 	done
