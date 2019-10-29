@@ -1123,7 +1123,6 @@ int dpm_suspend_noirq(pm_message_t state)
 	int error = 0;
 
 	trace_suspend_resume(TPS("dpm_suspend_noirq"), state.event, true);
- entering suspend as part of commit 8651f97bd951d0bb1c10fa24e3fa3455193f3548 in order to work around some ACPI bugs. However, there's no reason to do this on modern platforms. Leaving cpuidle enabled can result in improved power consumption if dpm_resume_noirq runs for a significant time. Change-Id: Ie182785b176f448698c0264eba554d1e315e8a06 Signed-off-by: andip71 <andreasp@gmx.de>
 	suspend_device_irqs();
 	mutex_lock(&dpm_list_mtx);
 	pm_transition = state;
