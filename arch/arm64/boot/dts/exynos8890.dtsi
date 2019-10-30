@@ -455,12 +455,6 @@
 					           4    /* Number of online core is 3 */
 					           4 >; /* Number of online core is 4 */
 
-		ext_cl1_max_support_idx_table = < 7	   /* Number of online core is 0 */
-					      1    /* Number of online core is 1 */
-					      1    /* Number of online core is 2 */
-					      4    /* Number of online core is 3 */
-					      4 >; /* Number of online core is 4 */
-
 		/* Boost freq*/
 		cl0_boost_freq = <754000>;
 
