@@ -900,7 +900,7 @@ static inline int cpufreq_enable_boost_support(void)
 static inline bool policy_has_boost_freq(struct cpufreq_policy *policy)
 {
 	return false;
-}r
+}
 #endif
 /* the following funtion is for cpufreq core use only */
 struct cpufreq_frequency_table *cpufreq_frequency_get_table(unsigned int cpu);

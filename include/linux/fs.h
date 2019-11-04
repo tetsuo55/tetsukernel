@@ -2907,6 +2907,5 @@ static inline bool dir_relax(struct inode *inode)
 
 int vfs_ioc_setflags_prepare(struct inode *inode, unsigned int oldflags,
 			     unsigned int flags);
->>>>>>> ANDROID: ext4: don't put symlink in pagecache into highmem
 
 #endif /* _LINUX_FS_H */
