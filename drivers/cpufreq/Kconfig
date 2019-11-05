@@ -1906,12 +1906,6 @@ config FINGERPRINT_BOOST
 config CPU_INPUT_BOOST
 	bool "CPU Input Boost"
 	help
-	  Boosts the CPU on touchscreen and touchpad input. Boost frequencies and
-	  durations are calculated automatically.
-
-config CPU_INPUT_BOOST_8890
-	bool "CPU Input Boost"
-	help
 	  Boosts the CPU on touchscreen and touchpad input, and allows for
 	  boosting on other custom events, mainly which is intended to be for
 	  boosting when there is a new frame ready to be rendered to the
@@ -1919,7 +1913,7 @@ config CPU_INPUT_BOOST_8890
 	  frame drops are near-zero at the boosted frequencies and power
 	  consumption is minimized at said frequency combination.
 
-if CPU_INPUT_BOOST_8890
+if CPU_INPUT_BOOST
 
 config INPUT_BOOST_DURATION_MS
 	int "Input boost duration"
@@ -1958,7 +1952,6 @@ config MAX_BOOST_FREQ_PERF
 	  Max-boost frequency for the performance CPU cluster.
 
 endif
-
 
 menu "x86 CPU frequency scaling drivers"
 depends on X86
