@@ -114,29 +114,15 @@ cpumask_var_t irq_default_affinity;
  *	@irq:		Interrupt to check
  *
  */
-bool irq_can_set_affinity(unsigned int irq)
+int irq_can_set_affinity(unsigned int irq)
 {
 	struct irq_desc *desc = irq_to_desc(irq);
 
 	if (!desc || !irqd_can_balance(&desc->irq_data) ||
 	    !desc->irq_data.chip || !desc->irq_data.chip->irq_set_affinity)
-		return false;
-	return true;
-}
+		return 0;
 
-/**
- * irq_can_set_affinity_usr - Check if affinity of a irq can be set from user space
- * @irq:	Interrupt to check
- *
- * Like irq_can_set_affinity() above, but additionally checks for the
- * AFFINITY_MANAGED flag.
- */
-bool irq_can_set_affinity_usr(unsigned int irq)
-{
-	struct irq_desc *desc = irq_to_desc(irq);
-
-	return __irq_can_set_affinity(desc) &&
-		!irqd_affinity_is_managed(&desc->irq_data);
+	return 1;
 }
 
 /**
