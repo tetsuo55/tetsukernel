@@ -11917,7 +11917,7 @@ static int __init hmp_dwcompensation_init(void)
 	 * because load is decayed about 1/2 for 32ms.
 	 */
 	hmp_dwcompensation.threshold = hmp_down_threshold / 2;
-	hmp_dwcompensation_update_thr();y
+	hmp_dwcompensation_update_thr();
 
 	for (lv = 0; lv < DWCOM_LV_END; lv++)
 		pm_qos_add_request(&hmp_dwcompensation.data[lv].pm_qos,
