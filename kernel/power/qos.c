@@ -400,6 +400,10 @@ int pm_qos_update_target(struct pm_qos_constraints *c, struct plist_node *node,
 	curr_value = pm_qos_get_value(c);
 	pm_qos_set_value(c, curr_value);
 
+	spin_unlock(&pm_qos_lock);
+
+	trace_pm_qos_update_target(action, prev_value, curr_value);
+
 	if (c->type == PM_QOS_FORCE_MAX) {
 		blocking_notifier_call_chain(c->notifiers,
 					     (unsigned long)curr_value,
@@ -416,11 +420,6 @@ int pm_qos_update_target(struct pm_qos_constraints *c, struct plist_node *node,
 	} else {
 		ret = 0;
 	}
-
-	spin_unlock(&pm_qos_lock);
-
-	trace_pm_qos_update_target(action, prev_value, curr_value);
-
 	return ret;
 }
 
