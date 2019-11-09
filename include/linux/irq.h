@@ -620,12 +620,12 @@ static inline struct cpumask *irq_get_affinity_mask(int irq)
 {
 	struct irq_data *d = irq_get_irq_data(irq);
 
-	return d ? d->affinity : NULL;
+	return d ? d->common->affinity : NULL;
 }
 
 static inline struct cpumask *irq_data_get_affinity_mask(struct irq_data *d)
 {
-	return d->affinity;
+	return d->common->affinity;
 }
 
 unsigned int arch_dynirq_lower_bound(unsigned int from);

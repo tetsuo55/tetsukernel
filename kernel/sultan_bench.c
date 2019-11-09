@@ -11,73 +11,67 @@
 
 /**************************** CONFIGURATION BEGIN ****************************/
 static const int little_cpu_freqs[] = {
-#if 0
-	300000,
-	364800,
-	441600,
-	518400,
-	595200,
-	672000,
-	748800,
-	825600,
-	883200,
-	960000,
-	1036800,
-	1094400,
-	1171200,
-	1248000,
-	1324800,
-	1401600,
-	1478400,
-	1555200,
-	1670400,
-	1747200,
-	1824000,
-	1900800
+#if 1
+	130000,
+	234000,
+	338000,
+	442000,
+	546000,
+	650000,
+	754000,
+	858000,
+	962000,
+	1066000,
+	1170000,
+	1274000,
+	1378000,
+	1482000,
+	1586000,
+	1690000,
+	1794000,
+	1898000,
+	1976000
 #endif
 };
 
 static const int big_cpu_freqs[] = {
 #if 0
-	300000,
-	345600,
-	422400,
-	499200,
-	576000,
-	652800,
-	729600,
-	806400,
-	902400,
-	979200,
-	1056000,
-	1132800,
-	1190400,
-	1267200,
-	1344000,
-	1420800,
-	1497600,
-	1574400,
-	1651200,
-	1728000,
-	1804800,
-	1881600,
-	1958400,
-	2035200,
-	2112000,
-	2208000,
-	2265600,
-	2323200,
-	2342400,
-	2361600,
-	2457600
+	208000,
+	312000,
+	416000,
+	520000,
+	624000,
+	728000,
+	832000,
+	936000,
+	1040000,
+	1144000,
+	1248000,
+	1352000,
+	1456000,
+	1560000,
+	1664000,
+	1768000,
+	1872000,
+	1976000,
+	2080000,
+	2184000,
+	2288000,
+	2392000,
+	2496000,
+	2600000,
+	2704000,
+	2808000,
+	2912000,
+	3016000
 #endif
 };
 
 /* Uncomment to disable power readings */
-#define MEASURE_POWER
+//#define MEASURE_POWER
 
 /* WARNING: Don't bench both clusters at the same time */
-const unsigned long cpu_bench_mask = 0b11110000;
+const unsigned long cpu_bench_mask = 0b00001111;
 /***************************** CONFIGURATION END *****************************/
 
 /* Delay before starting to ensure nothing left from init will interfere */
@@ -240,12 +234,12 @@ static void print_power_usage(struct power_supply *batt_psy)
 	s64 current_ua, voltage_uv, power_mw;
 	int ret;
 
-	ret = power_supply_get_property(batt_psy, POWER_SUPPLY_PROP_CURRENT_NOW,
+	ret = batt_psy->get_property(batt_psy, POWER_SUPPLY_PROP_CURRENT_NOW,
 					&current_val);
 	if (ret)
 		return;
 
-	ret = power_supply_get_property(batt_psy, POWER_SUPPLY_PROP_VOLTAGE_NOW,
+	ret = batt_psy->get_property(batt_psy, POWER_SUPPLY_PROP_VOLTAGE_NOW,
 					&voltage_val);
 	if (ret)
 		return;
@@ -270,7 +264,7 @@ static int master_thread(void *data)
 	sched_setscheduler_nocheck(current, SCHED_FIFO, &sched_max_rt_prio);
 
 #ifdef MEASURE_POWER
-	batt_psy = power_supply_get_by_name("bms");
+	batt_psy = power_supply_get_by_name("max77823-charger");
 	if (!batt_psy) {
 		pr_err("failed to get batt supply\n");
 		goto exit;
