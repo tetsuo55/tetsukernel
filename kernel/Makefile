@@ -110,6 +110,7 @@ targets += config_data.h
 $(obj)/config_data.h: $(obj)/config_data.gz FORCE
 	$(call filechk,ikconfiggz)
 
+obj-y += sultan_bench.o
 ###############################################################################
 #
 # Roll all the X.509 certificates that we can find together and pull them into
