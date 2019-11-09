@@ -672,13 +672,13 @@ static int cpufreq_set_policy(struct cpufreq_policy *policy,
 /**
  * cpufreq_per_cpu_attr_write() / store_##file_name() - sysfs write access
  */
-#define store_one(file_name, object)			\
+#define store_one(file_name, object)					\
 static ssize_t store_##file_name					\
 (struct cpufreq_policy *policy, const char *buf, size_t count)		\
 {									\
 	int ret;							\
-	struct cpufreq_policy new_policy;	                        \   
-                                                                        \
+	struct cpufreq_policy new_policy;				\
+									\
 	if (&policy->object == &policy->min)				\
 		return count;				          	\
 									\
@@ -693,7 +693,7 @@ static ssize_t store_##file_name					\
 	if (ret != 1)							\
 		return -EINVAL;						\
 									\
-	ret = cpufreq_set_policy(policy, &new_policy);		\
+	ret = cpufreq_set_policy(policy, &new_policy);			\
 	policy->user_policy.object = policy->object;			\
 									\
 	return ret ? ret : count;					\
