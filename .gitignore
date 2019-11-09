@@ -97,3 +97,12 @@ all.config
 
 # fetched Android config fragments
 android/configs/android-*.cfg
+
+Edge_build.log
+Flat_build.log
+arch/arm64/boot/dtb/
+arch/arm64/kernel/vdso/vdso.so
+drivers/gator/gator_src_md5.h
+security/selinux_n/av_permissions.h
+security/selinux_n/flask.h
+builds/*.zip
