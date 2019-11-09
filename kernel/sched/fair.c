@@ -2441,7 +2441,6 @@ static __always_inline int __update_entity_runnable_avg(u64 now,
 #ifdef CONFIG_HMP_FREQUENCY_INVARIANT_SCALE
 	u64 scaled_delta;
 	u32 scaled_runnable_contrib;
-	int scaled_delta_w;
 	u32 curr_scale = 1024;
 #endif /* CONFIG_HMP_FREQUENCY_INVARIANT_SCALE */
 
