@@ -242,7 +242,7 @@ int sec_ts_i2c_write(struct sec_ts_data * ts, u8 reg, u8 * data, int len)
 	if (retry == 10) {
 		input_err(true, &ts->client->dev, "%s: I2C write over retry limit\n", __func__);
 #ifdef POR_AFTER_I2C_RETRY
-		schedule_delayed_work(&ts->reset_work,
+		queue_delayed_work(system_power_efficient_wq, &ts->reset_work,
 					msecs_to_jiffies(TOUCH_RESET_DWORK_TIME));
 
 		if (!retry_cnt++)
@@ -315,7 +315,7 @@ int sec_ts_i2c_read(struct sec_ts_data * ts, u8 reg, u8 * data, int len)
 	if (retry == SEC_TS_I2C_RETRY_CNT) {
 		input_err(true, &ts->client->dev, "%s: I2C write over retry limit\n", __func__);
 #ifdef POR_AFTER_I2C_RETRY
-		schedule_delayed_work(&ts->reset_work,
+		queue_delayed_work(system_power_efficient_wq, &ts->reset_work,
 					msecs_to_jiffies(TOUCH_RESET_DWORK_TIME));
 
 		if (!retry_cnt++)
@@ -360,7 +360,7 @@ int sec_ts_i2c_read(struct sec_ts_data * ts, u8 reg, u8 * data, int len)
 	if (retry == SEC_TS_I2C_RETRY_CNT) {
 		input_err(true, &ts->client->dev, "%s: I2C read over retry limit\n", __func__);
 #ifdef POR_AFTER_I2C_RETRY
-		schedule_delayed_work(&ts->reset_work,
+		queue_delayed_work(system_power_efficient_wq, &ts->reset_work,
 			msecs_to_jiffies(TOUCH_RESET_DWORK_TIME));
 
 		if (!retry_cnt++)
@@ -418,7 +418,7 @@ void tsp_dump_sec(void)
 		printk(KERN_ERR "%s sec_ts %s, ignored ## tsp probe fail!!\n", SECLOG, __func__);
 		return;
 	}
-	schedule_delayed_work(p_ghost_check, msecs_to_jiffies(100));
+	queue_delayed_work(system_power_efficient_wq, p_ghost_check, msecs_to_jiffies(100));
 }
 #else
 void tsp_dump_sec(void)
@@ -468,7 +468,7 @@ static int sec_ts_i2c_read_bulk(struct sec_ts_data * ts, u8 * data, int len)
 	if (retry == 10) {
 		input_err(true, &ts->client->dev, "%s: I2C read over retry limit\n", __func__);
 #ifdef POR_AFTER_I2C_RETRY
-		schedule_delayed_work(&ts->reset_work,
+		queue_delayed_work(system_power_efficient_wq, &ts->reset_work,
 					msecs_to_jiffies(TOUCH_RESET_DWORK_TIME));
 
 		if (!retry_cnt++)
@@ -2045,7 +2045,7 @@ static int sec_ts_probe(struct i2c_client *client, const struct i2c_device_id *i
 #ifdef SEC_TS_SUPPORT_SPONGELIB
 	sec_ts_check_custom_library(ts);
 #endif
-	schedule_delayed_work(&ts->read_nv_work, msecs_to_jiffies(5000));
+	queue_delayed_work(system_power_efficient_wq, &ts->read_nv_work, msecs_to_jiffies(5000));
 
 	ts_dup = ts;
 

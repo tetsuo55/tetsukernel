@@ -223,27 +223,30 @@ void muic_set_hmt_status(int status)
 		muic_send_dock_intent(MUIC_DOCK_ABNORMAL);
 }
 
+#if 0
 static int muic_get_hmt_status(void)
 {
 	return muic_hmt_status;
 }
+#endif
 
 #if defined(CONFIG_VBUS_NOTIFIER)
 static void muic_handle_vbus(muic_data_t *pmuic)
 {
 	vbus_status_t status = pmuic->vps.t.vbvolt ?
-			STATUS_VBUS_HIGH: STATUS_VBUS_LOW;
+				STATUS_VBUS_HIGH: STATUS_VBUS_LOW;
 
 	pr_info("%s:%s <%d>\n", MUIC_DEV_NAME, __func__, pmuic->vps.t.vbvolt);
 
-
+#if 0
 	if (pmuic->attached_dev == ATTACHED_DEV_HMT_MUIC) {
 		if (muic_get_hmt_status()) {
 			pr_info("%s:%s Abnormal HMT -> VBUS_UNKNOWN Noti.\n",
-				MUIC_DEV_NAME, __func__);
+						MUIC_DEV_NAME, __func__);
 			status = STATUS_VBUS_UNKNOWN;
 		}
 	}
+#endif
 
 	vbus_notifier_handle(status);
 
@@ -253,7 +256,7 @@ static void muic_handle_vbus(muic_data_t *pmuic)
 static void muic_handle_vbus(muic_data_t *pmuic)
 {
 	pr_info("%s:%s <%d> Not implemented.\n", MUIC_DEV_NAME,
-			__func__, pmuic->vps.t.vbvolt);
+					__func__, pmuic->vps.t.vbvolt);
 }
 #endif
 
@@ -275,9 +278,7 @@ static irqreturn_t max77854_muic_irq_handler(muic_data_t *pmuic, int irq)
 
 	case MAX77854_MUIC_IRQ_INT2_DCDTMR:
 		pr_info("%s DCTTMR interrupt occured\n",__func__);
-#ifndef CONFIG_SEC_FACTORY
 		pmuic->is_dcdtmr_intr = true;
-#endif
 		break;
 	default:
 		break;
@@ -526,10 +527,6 @@ static int muic_probe(struct platform_device *pdev)
 #if defined(CONFIG_MUIC_SUPPORT_CCIC)
 	pmuic->opmode = get_ccic_info() & 0x0F;
 	pmuic->afc_water_disable = false;
-	pmuic->afc_tsub_disable = false;
-	pmuic->is_ccic_attach = false;
-	pmuic->is_ccic_afc_enable = 0;
-	pmuic->is_ccic_rp56_enable = false;
 #endif
 	/* set switch device's driver_data */
 	dev_set_drvdata(switch_device, pmuic);
@@ -537,7 +534,7 @@ static int muic_probe(struct platform_device *pdev)
 	/* create sysfs group */
 	ret = sysfs_create_group(&switch_device->kobj, &muic_sysfs_group);
 	if (ret) {
-		pr_err("%s: failed to create max77854 muic attribute group\n",
+		pr_err("%s: failed to create sm5703 muic attribute group\n",
 			__func__);
 		goto fail;
 	}
@@ -615,7 +612,7 @@ err_return:
 	return ret;
 }
 
-static int __devexit muic_remove(struct platform_device *pdev)
+static int muic_remove(struct platform_device *pdev)
 {
 	muic_data_t *pmuic = platform_get_drvdata(pdev);
 	sysfs_remove_group(&switch_device->kobj, &muic_sysfs_group);
@@ -653,9 +650,9 @@ static struct of_device_id muic_i2c_dt_ids[] = {
 MODULE_DEVICE_TABLE(of, muic_i2c_dt_ids);
 #endif /* CONFIG_OF */
 
-static void muic_shutdown(struct device *dev)
+static void muic_shutdown(struct platform_device *pdev)
 {
-	muic_data_t *pmuic = dev_get_drvdata(dev);
+	muic_data_t *pmuic = platform_get_drvdata(pdev);
 	int ret;
 	if(pmuic == NULL)
 	{
@@ -732,7 +729,6 @@ static struct platform_driver muic_driver = {
 	.driver		= {
 		.name	= MUIC_DEV_NAME,
 		.owner	= THIS_MODULE,
-		.shutdown = muic_shutdown,
 #if defined(CONFIG_OF)
 		.of_match_table	= muic_i2c_dt_ids,
 #endif /* CONFIG_OF */
@@ -742,6 +738,7 @@ static struct platform_driver muic_driver = {
 	},
 	.probe		= muic_probe,
 	.remove		= muic_remove,
+	.shutdown	= muic_shutdown,
 };
 
 static int __init muic_init(void)

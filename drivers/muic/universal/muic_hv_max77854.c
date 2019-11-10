@@ -40,7 +40,6 @@
 #include "muic_i2c.h"
 #include "muic_vps.h"
 #include "muic_apis.h"
-#include "muic_regmap.h"
 
 #include "muic_hv.h"
 #include "muic_hv_max77854.h"
@@ -51,7 +50,6 @@
 
 #if defined(CONFIG_MUIC_SUPPORT_CCIC)
 #include "muic_ccic.h"
-#include <linux/ccic/s2mm005.h>
 #endif
 
 static bool debug_en_checklist = false;
@@ -122,11 +120,6 @@ enum act_function_num {
 	FUNC_QC_PREPARE_TO_QC_9V,
 	FUNC_QC_5V_TO_QC_9V,
 	FUNC_QC_9V_TO_QC_5V,
-#if defined(CONFIG_MUIC_HV_SUPPORT_POGO_DOCK)
-	FUNC_POGO_DOCK_TO_POGO_DOCK_5V,
-	FUNC_POGO_DOCK_TO_POGO_DOCK_9V,
-	FUNC_POGO_DOCK_5V_TO_POGO_DOCK_9V,
-#endif
 };
 
 static struct hv_data hv_afc;
@@ -764,43 +757,6 @@ muic_afc_data_t qc_9v_to_qc_5v = {
 	.next			= &qc_9v_to_qc_5v,
 };
 
-#if defined(CONFIG_MUIC_HV_SUPPORT_POGO_DOCK)
-/* afc_condition_checklist[ATTACHED_DEV_POGO_DOCK_MUIC] */
-muic_afc_data_t pogo_dock_to_pogo_dock_9v = {
-	.new_dev		= ATTACHED_DEV_POGO_DOCK_9V_MUIC,
-	.afc_name		= "Pogo Dock 9V",
-	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DONTCARE,
-	.status3_vbadc		= VBADC_AFC_9V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
-	.function_num		= FUNC_POGO_DOCK_TO_POGO_DOCK_9V,
-	.next			= &pogo_dock_to_pogo_dock_9v,
-};
-
-muic_afc_data_t pogo_dock_to_pogo_dock_5v = {
-	.new_dev		= ATTACHED_DEV_POGO_DOCK_5V_MUIC,
-	.afc_name		= "Pogo Dock 5V",
-	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DONTCARE,
-	.status3_vbadc		= VBADC_AFC_5V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
-	.function_num		= FUNC_POGO_DOCK_TO_POGO_DOCK_5V,
-	.next			= &pogo_dock_to_pogo_dock_9v,
-};
-
-/* afc_condition_checklist[ATTACHED_DEV_POGO_DOCK_5V_MUIC] */
-muic_afc_data_t pogo_dock_5v_to_pogo_dock_9v = {
-	.new_dev		= ATTACHED_DEV_POGO_DOCK_9V_MUIC,
-	.afc_name		= "Pogo Dock 9V",
-	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DONTCARE,
-	.status3_vbadc		= VBADC_AFC_9V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
-	.function_num		= FUNC_POGO_DOCK_5V_TO_POGO_DOCK_9V,
-	.next			= &pogo_dock_5v_to_pogo_dock_9v,
-};
-#endif
-
 muic_afc_data_t		*afc_condition_checklist[ATTACHED_DEV_NUM] = {
 	[ATTACHED_DEV_TA_MUIC]			= &ta_to_prepare,
 	[ATTACHED_DEV_AFC_CHARGER_PREPARE_MUIC]	= &prepare_to_prepare_dupli,
@@ -818,10 +774,6 @@ muic_afc_data_t		*afc_condition_checklist[ATTACHED_DEV_NUM] = {
 	[ATTACHED_DEV_QC_CHARGER_PREPARE_MUIC]	= &qc_prepare_to_qc_9v,
 	[ATTACHED_DEV_QC_CHARGER_5V_MUIC]	= &qc_5v_to_qc_9v,
 	[ATTACHED_DEV_QC_CHARGER_9V_MUIC]	= &qc_9v_to_qc_5v,
-#if defined(CONFIG_MUIC_HV_SUPPORT_POGO_DOCK)
-	[ATTACHED_DEV_POGO_DOCK_MUIC]		= &pogo_dock_to_pogo_dock_5v,
-	[ATTACHED_DEV_POGO_DOCK_5V_MUIC]	= &pogo_dock_5v_to_pogo_dock_9v,
-#endif
 };
 
 struct afc_init_data_s {
@@ -875,10 +827,6 @@ muic_attached_dev_t hv_muic_check_id_err
 
 	switch(new_dev) {
 	case ATTACHED_DEV_TA_MUIC:
-#if defined(CONFIG_MUIC_SUPPORT_CCIC)
-		if (phv->pmuic->is_ccic_afc_enable == Rp_Abnormal)
-			goto out;
-#endif
 		pr_info("%s:%s cannot change HV(%d)->TA(%d)!\n", MUIC_DEV_NAME,
 			__func__, phv->attached_dev, new_dev);
 		after_new_dev = phv->attached_dev;
@@ -903,7 +851,6 @@ out:
 /*
 static int max77854_hv_muic_read_reg(struct i2c_client *i2c, u8 reg, u8 *value)
 {
-
 	value = (u8 *)muic_i2c_read_byte(i2c, reg);
 	if (value < 0)
 		pr_err("%s:%s err read REG(0x%02x) [%d]\n", MUIC_HV_DEV_NAME,
@@ -1018,8 +965,8 @@ static void max77854_hv_muic_set_afc_after_prepare
 
 	max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVTXBYTE, value);
 
-	/* Set HVCONTROL2 = 0x5B */
-	max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVCONTROL2, MAX77854_MUIC_HVCONTROL2_5B);
+	/* Set HVCONTROL2 = 0x1B */
+	max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVCONTROL2, MAX77854_MUIC_HVCONTROL2_1B);
 
 }
 
@@ -1209,43 +1156,11 @@ void max77854_hv_muic_adcmode_oneshot(struct hv_data *phv)
 	max77854_hv_muic_adcmode_switch(phv, false);
 }
 
-void max77854_hv_muic_connect_start(struct hv_data *phv)
-{
-	pr_info("%s:%s\n", MUIC_HV_DEV_NAME, __func__);
-
-	phv->attached_dev = ATTACHED_DEV_AFC_CHARGER_PREPARE_MUIC;
-
-	/* update MUIC's attached_dev */
-	phv->pmuic->attached_dev = phv->attached_dev;
-
-	max77854_hv_muic_adcmode_always_on(phv);
-	max77854_hv_muic_set_afc_after_prepare(phv);
-	phv->afc_count = 0;
-	phv->is_afc_handshaking = false;
-	/*
-	 * HW Issue(MPing miss)
-	 * check HV state values after 2000ms(2s)
-	 */
-	queue_delayed_work(system_power_efficient_wq, &phv->hv_muic_mping_miss_wa,
-			msecs_to_jiffies(MPING_MISS_WA_TIME));
-
-#if defined(CONFIG_MUIC_NOTIFIER)
-	muic_notifier_attach_attached_dev(phv->attached_dev);
-#endif
-
-#if defined(CONFIG_MUIC_SUPPORT_CCIC)
-	if (phv->pmuic->opmode & OPMODE_CCIC)
-		muic_set_legacy_dev(phv->pmuic, phv->attached_dev);
-#endif
-}
-
 static int max77854_hv_muic_handle_attach
 		(struct hv_data *phv, const muic_afc_data_t *new_afc_data)
 {
 	int ret = 0;
-#if defined(CONFIG_MUIC_NOTIFIER)
 	bool noti = true;
-#endif
 	muic_attached_dev_t	new_dev	= new_afc_data->new_dev;
 	int mping_missed = (phv->vps.hvcontrol[1] & 0x8);
 	if (mping_missed)
@@ -1270,21 +1185,14 @@ static int max77854_hv_muic_handle_attach
 
 	switch (new_afc_data->function_num) {
 	case FUNC_TA_TO_PREPARE:
-#if !defined(CONFIG_MUIC_SUPPORT_CCIC)
-		pr_info("%s: 9V HV Charging Start!\n", __func__);
-		phv->tx_data = MUIC_HV_9V;
-		max77854_hv_muic_connect_start(phv);
-#else
-		if (phv->pmuic->is_ccic_afc_enable == Rp_56K) {
-			pr_info("%s: 9V HV Charging Start!\n", __func__);
-			phv->tx_data = MUIC_HV_9V;
-			max77854_hv_muic_connect_start(phv);
-		} else {
-			pr_info("%s:%s First check PREPARE! AFC 5V noti.\n", MUIC_HV_DEV_NAME, __func__);
-			new_dev = ATTACHED_DEV_AFC_CHARGER_5V_MUIC;
-			noti = true;
-		}
-#endif
+		max77854_hv_muic_adcmode_always_on(phv);
+		max77854_hv_muic_set_afc_after_prepare(phv);
+		phv->afc_count = 0;
+		phv->is_afc_handshaking = false;
+		/* HW Issue(MPing miss)
+		 * check HV state values after 2000ms(2s) */
+		queue_delayed_work(system_power_efficient_wq, &phv->hv_muic_mping_miss_wa,
+				msecs_to_jiffies(MPING_MISS_WA_TIME));
 		break;
 	case FUNC_PREPARE_TO_PREPARE_DUPLI:
 		/* attached_dev is changed. MPING Missing did not happened
@@ -1336,7 +1244,17 @@ static int max77854_hv_muic_handle_attach
 		}
 		break;
 	case FUNC_PREPARE_DUPLI_TO_AFC_5V:
-		noti = false;
+		if (!phv->is_afc_handshaking) {
+			max77854_hv_muic_set_afc_charger_handshaking(phv);
+			if (!mping_missed)
+				phv->is_afc_handshaking = true;
+		}
+		if (phv->afc_count > AFC_CHARGER_WA_PING) {
+			max77854_hv_muic_afc_control_ping(phv, false);
+		} else {
+			max77854_hv_muic_afc_control_ping(phv, true);
+			noti = false;
+		}
 		break;
 	case FUNC_PREPARE_DUPLI_TO_AFC_ERR_V:
 		if (phv->afc_count > AFC_CHARGER_WA_PING) {
@@ -1386,8 +1304,12 @@ static int max77854_hv_muic_handle_attach
 		pr_info("%s:%s cancel_delayed_work(dev %d), Mping missing wa\n",
 			MUIC_HV_DEV_NAME, __func__, new_dev);
 		cancel_delayed_work(&phv->hv_muic_mping_miss_wa);
-		if (phv->afc_count <= AFC_CHARGER_WA_PING)
+		if (phv->afc_count > AFC_CHARGER_WA_PING) {
+			max77854_hv_muic_afc_control_ping(phv, false);
+		} else {
+			max77854_hv_muic_afc_control_ping(phv, true);
 			noti = false;
+		}
 		break;
 	case FUNC_AFC_5V_TO_AFC_9V:
 		/* attached_dev is changed. MPING Missing did not happened
@@ -1639,15 +1561,6 @@ static int max77854_hv_muic_handle_attach
 	case FUNC_QC_9V_TO_QC_5V:
 		max77854_hv_muic_adcmode_oneshot(phv);
 		break;
-#if defined(CONFIG_MUIC_HV_SUPPORT_POGO_DOCK)
-	case FUNC_POGO_DOCK_TO_POGO_DOCK_5V:
-		pr_info("%s:%s keep adcmode continuous\n", MUIC_HV_DEV_NAME, __func__);
-		break;
-	case FUNC_POGO_DOCK_TO_POGO_DOCK_9V:
-	case FUNC_POGO_DOCK_5V_TO_POGO_DOCK_9V:
-		max77854_hv_muic_adcmode_oneshot(phv);
-		break;
-#endif
 	default:
 		pr_warn("%s:%s undefinded hv function num(%d)\n", MUIC_HV_DEV_NAME,
 					__func__, new_afc_data->function_num);
@@ -1789,6 +1702,7 @@ static bool muic_check_status3_vbadc
 		switch (vbadc) {
 		case VBADC_10V_12V:
 		case VBADC_12V_13V:
+		case VBADC_13V_14V:
 			ret = true;
 			goto out;
 		default:
@@ -1804,8 +1718,8 @@ static bool muic_check_status3_vbadc
 #if !defined(CONFIG_MUIC_HV_12V)
 		case VBADC_10V_12V:
 		case VBADC_12V_13V:
-#endif
 		case VBADC_13V_14V:
+#endif
 		case VBADC_14V_15V:
 		case VBADC_15V_16V:
 		case VBADC_16V_17V:
@@ -1821,11 +1735,13 @@ static bool muic_check_status3_vbadc
 	if (tmp_afc_data->status3_vbadc == VBADC_AFC_ERR_V) {
 		switch (vbadc) {
 		case VBADC_VBDET:
+		case VBADC_6V_7V:
+		case VBADC_7V_8V:
 #if !defined(CONFIG_MUIC_HV_12V)
 		case VBADC_10V_12V:
 		case VBADC_12V_13V:
-#endif
 		case VBADC_13V_14V:
+#endif
 		case VBADC_14V_15V:
 		case VBADC_15V_16V:
 		case VBADC_16V_17V:
@@ -1872,9 +1788,11 @@ static bool muic_check_status3_vbadc
 		case VBADC_7V_8V:
 		case VBADC_8V_9V:
 		case VBADC_9V_10V:
+#if !defined(CONFIG_MUIC_HV_12V)
 		case VBADC_10V_12V:
 		case VBADC_12V_13V:
 		case VBADC_13V_14V:
+#endif
 		case VBADC_14V_15V:
 		case VBADC_15V_16V:
 		case VBADC_16V_17V:
@@ -1961,12 +1879,6 @@ static bool muic_check_dev_ta(struct hv_data *phv)
 		max77854_muic_set_afc_ready(phv, false);
 		return false;
 	}
-
-#if defined(CONFIG_MUIC_HV_SUPPORT_POGO_DOCK)
-	if (vbvolt > 0 && gpio_is_valid(phv->pmuic->dock_int_ap) 
-			&& gpio_get_value(phv->pmuic->dock_int_ap) == 0)
-		return true;
-#endif
 
 	if (muic_hv_is_nonafc_ta(chgtyp)) {
 		max77854_muic_set_afc_ready(phv, false);
@@ -2200,45 +2112,11 @@ static void max77854_hv_muic_detect_after_charger_init(struct work_struct *work)
 	if (phv->is_afc_muic_ready) {
 		if (phv->is_afc_muic_prepare)
 			max77854_hv_muic_detect_dev(phv, phv->irq_vdnmon);
-#if defined(CONFIG_MUIC_HV_SUPPORT_POGO_DOCK)
-		else if (gpio_is_valid(phv->pmuic->dock_int_ap) && 
-				gpio_get_value(phv->pmuic->dock_int_ap) == 0)
-			max77854_hv_muic_detect_dev(phv, phv->irq_vbadc);
-#endif
 		else
 			max77854_hv_muic_detect_dev(phv, -1);
 	}
 
 	mutex_unlock(phv->pmutex);
-}
-
-#if defined(CONFIG_MUIC_HV_SUPPORT_POGO_DOCK)
-void max77854_muic_prepare_afc_pogo_dock(struct hv_data *phv)
-{
-	pr_info("%s:%s \n", MUIC_DEV_NAME, __func__);
-
-	max77854_hv_muic_adcmode_always_on(phv);
-	max77854_muic_set_afc_ready(phv, true);
-}
-#endif
-
-static int is_hv_cable(muic_data_t *pmuic)
-{
-	switch (pmuic->attached_dev) {
-	case ATTACHED_DEV_AFC_CHARGER_PREPARE_MUIC:
-	case ATTACHED_DEV_AFC_CHARGER_PREPARE_DUPLI_MUIC:
-	case ATTACHED_DEV_AFC_CHARGER_5V_MUIC:
-	case ATTACHED_DEV_AFC_CHARGER_5V_DUPLI_MUIC:
-	case ATTACHED_DEV_AFC_CHARGER_9V_MUIC:
-	case ATTACHED_DEV_AFC_CHARGER_9V_DUPLI_MUIC:
-	case ATTACHED_DEV_AFC_CHARGER_ERR_V_MUIC:
-	case ATTACHED_DEV_AFC_CHARGER_ERR_V_DUPLI_MUIC:
-	case ATTACHED_DEV_QC_CHARGER_5V_MUIC:
-	case ATTACHED_DEV_QC_CHARGER_9V_MUIC:
-		return 1;
-	default:
-		return 0;
-	}
 }
 
 void hv_muic_change_afc_voltage(muic_data_t *pmuic, int tx_data)
@@ -2282,26 +2160,13 @@ void hv_muic_change_afc_voltage(muic_data_t *pmuic, int tx_data)
 int muic_afc_set_voltage(int vol)
 {
 	muic_data_t *pmuic = hv_afc.pmuic;
-	struct vendor_ops *pvendor = pmuic->regmapdesc->vendorops;
 
-	if (is_hv_cable(pmuic)) {
-		if (vol == 0) {
-			pr_info("%s: TSUB too hot. Chgdet Re-run.\n", __func__);
-			hv_muic_chgdet_ready(pmuic->phv);
-			if (pvendor && pvendor->run_chgdet)
-				pvendor->run_chgdet(pmuic->regmapdesc, 1);
-		} else if (vol == 5) {
-			hv_muic_change_afc_voltage(pmuic, MUIC_HV_5V);
-		} else if (vol == 9) {
-			hv_muic_change_afc_voltage(pmuic, MUIC_HV_9V);
-		} else if (vol == 12) {
-			hv_muic_change_afc_voltage(pmuic, MUIC_HV_12V);
-		} else {
-			pr_warn("%s:%s invalid value\n", MUIC_DEV_NAME, __func__);
-			return 0;
-		}
+	if (vol == 5) {
+		hv_muic_change_afc_voltage(pmuic, MUIC_HV_5V);			
+	} else if (vol == 9) {
+		hv_muic_change_afc_voltage(pmuic, MUIC_HV_9V);
 	} else {
-		pr_info("%s:%s It's NOT HV cable type\n", MUIC_DEV_NAME, __func__);
+		pr_warn("%s:%s invalid value\n", MUIC_DEV_NAME, __func__);
 		return 0;
 	}
 
@@ -2321,13 +2186,6 @@ void max77854_hv_muic_charger_init(void)
 		afc_init_data.phv->is_charger_ready = true;
 		schedule_work(&afc_init_data.muic_afc_init_work);
 	}
-}
-
-void max77854_hv_muic_rp_init(struct hv_data *phv)
-{
-	pr_info("%s:%s\n", MUIC_HV_DEV_NAME, __func__);
-	max77854_muic_prepare_afc_charger(phv);
-	schedule_work(&afc_init_data.muic_afc_init_work);
 }
 
 static void max77854_hv_muic_check_qc_vb(struct work_struct *work)
@@ -2460,17 +2318,9 @@ static irqreturn_t max77854_muic_hv_irq(int irq, void *data)
 	else if (phv->is_charger_ready == false && irq != phv->irq_vdnmon)
 		pr_info("%s:%s not ready yet(charger_ready[%c])\n", MUIC_HV_DEV_NAME,
 			__func__, (phv->is_charger_ready ? 'T' : 'F'));
-#if defined(CONFIG_MUIC_HV_SUPPORT_POGO_DOCK)
-	else if (irq == phv->irq_vbadc && gpio_is_valid(phv->pmuic->dock_int_ap) && 
-			gpio_get_value(phv->pmuic->dock_int_ap) == 0) {
-		pr_info("%s:%s AFC pogo dock(%d)\n", MUIC_HV_DEV_NAME, __func__,
-				gpio_get_value(phv->pmuic->dock_int_ap));
-		max77854_hv_muic_detect_dev(phv, irq);
-	}
-#endif
-	else if (phv->pmuic->pdata->afc_disable)
+	else if (phv->afc_disable)
 		pr_info("%s:%s AFC disable by USER (afc_disable[%c]\n", MUIC_HV_DEV_NAME,
-			__func__, (phv->pmuic->pdata->afc_disable ? 'T' : 'F'));
+			__func__, (phv->afc_disable ? 'T' : 'F'));
 #if defined(CONFIG_MUIC_SUPPORT_CCIC)
 	else if (phv->pmuic->afc_water_disable)
 		pr_info("%s:%s AFC disable by WATER (afc_water_disable[%c]\n", MUIC_HV_DEV_NAME,
@@ -2685,10 +2535,6 @@ bool hv_do_predetach(struct hv_data *phv, int mdev)
 	pr_info("%s:%s\n", __func__, MUIC_HV_DEV_NAME);
 
 	noti = max77854_muic_check_change_dev_afc_charger(phv, mdev);
-#if defined(CONFIG_MUIC_SUPPORT_CCIC)
-	if (phv->pmuic->is_ccic_afc_enable == Rp_Abnormal)
-		noti = true;
-#endif
 
         if (noti) {
                 max77854_muic_set_afc_ready(phv, false);
@@ -2782,9 +2628,4 @@ void hv_set_afc_by_user(struct hv_data *phv, bool onoff)
 		phv->pmuic->attached_dev = ATTACHED_DEV_NONE_MUIC;
 
 	}
-}
-
-void hv_muic_chgdet_ready(struct hv_data *phv)
-{
-	hv_reset_afc(phv);
 }

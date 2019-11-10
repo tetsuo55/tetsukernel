@@ -492,7 +492,7 @@ static void sx9320_set_debug_work(struct sx9320_p *data, u8 enable,
 {
 	if (enable == ON) {
 		data->debug_count = 0;
-		schedule_delayed_work(&data->debug_work,
+		queue_delayed_work(system_power_efficient_wq, &data->debug_work,
 			msecs_to_jiffies(time_ms));
 	} else {
 		cancel_delayed_work_sync(&data->debug_work);
@@ -1334,7 +1334,7 @@ static void sx9320_debug_work_func(struct work_struct *work)
 		}
 	}
 
-	schedule_delayed_work(&data->debug_work, msecs_to_jiffies(1000));
+	queue_delayed_work(system_power_efficient_wq, &data->debug_work, msecs_to_jiffies(1000));
 }
 
 static irqreturn_t sx9320_interrupt_thread(int irq, void *pdata)
@@ -1345,7 +1345,7 @@ static irqreturn_t sx9320_interrupt_thread(int irq, void *pdata)
 		pr_err("[SX9320]: %s - nirq read high\n", __func__);
 	} else {
 		wake_lock_timeout(&data->grip_wake_lock, 3 * HZ);
-		schedule_delayed_work(&data->irq_work, msecs_to_jiffies(100));
+		queue_delayed_work(system_power_efficient_wq, &data->irq_work, msecs_to_jiffies(100));
 	}
 
 	return IRQ_HANDLED;
@@ -1734,7 +1734,7 @@ static int sx9320_probe(struct i2c_client *client,
 		goto grip_sensor_register_failed;
 	}
 
-	schedule_delayed_work(&data->init_work, msecs_to_jiffies(300));
+	queue_delayed_work(system_power_efficient_wq, &data->init_work, msecs_to_jiffies(300));
 	sx9320_set_debug_work(data, ON, 20000);
 
 #if defined(CONFIG_CCIC_NOTIFIER) && defined(CONFIG_USB_TYPEC_MANAGER_NOTIFIER)

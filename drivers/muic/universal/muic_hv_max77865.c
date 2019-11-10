@@ -30,8 +30,8 @@
 #include <linux/workqueue.h>
 #include <linux/delay.h>
 
-#include <linux/mfd/max77854.h>
-#include <linux/mfd/max77854-private.h>
+#include <linux/mfd/max77865.h>
+#include <linux/mfd/max77865-private.h>
 
 /* MUIC header file */
 #include <linux/muic/muic.h>
@@ -43,7 +43,7 @@
 #include "muic_regmap.h"
 
 #include "muic_hv.h"
-#include "muic_hv_max77854.h"
+#include "muic_hv_max77865.h"
 
 #if defined(CONFIG_MUIC_NOTIFIER)
 #include <linux/muic/muic_notifier.h>
@@ -122,11 +122,6 @@ enum act_function_num {
 	FUNC_QC_PREPARE_TO_QC_9V,
 	FUNC_QC_5V_TO_QC_9V,
 	FUNC_QC_9V_TO_QC_5V,
-#if defined(CONFIG_MUIC_HV_SUPPORT_POGO_DOCK)
-	FUNC_POGO_DOCK_TO_POGO_DOCK_5V,
-	FUNC_POGO_DOCK_TO_POGO_DOCK_9V,
-	FUNC_POGO_DOCK_5V_TO_POGO_DOCK_9V,
-#endif
 };
 
 static struct hv_data hv_afc;
@@ -136,9 +131,9 @@ muic_afc_data_t ta_to_prepare = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_PREPARE_MUIC,
 	.afc_name		= "AFC charger Prepare",
 	.afc_irq		= MUIC_AFC_IRQ_VDNMON,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_ENABLE,
-	.status3_vbadc		= VBADC_DONTCARE,
-	.status3_vdnmon		= VDNMON_LOW,
+	.bccontrol2_dpdnman	= DPDNVDEN_ENABLE,
+	.gpstatus_vbadc		= VBADC_DONTCARE,
+	.bcstatus2_vdnmon	= VDNMON_LOW,
 	.function_num		= FUNC_TA_TO_PREPARE,
 	.next			= &ta_to_prepare,
 };
@@ -148,9 +143,9 @@ muic_afc_data_t prepare_to_qc_prepare = {
 	.new_dev		= ATTACHED_DEV_QC_CHARGER_PREPARE_MUIC,
 	.afc_name		= "QC charger Prepare",
 	.afc_irq		= MUIC_AFC_IRQ_MPNACK,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DONTCARE,
-	.status3_vbadc		= VBADC_DONTCARE,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DONTCARE,
+	.gpstatus_vbadc		= VBADC_DONTCARE,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_PREPARE_TO_QC_PREPARE,
 	.next			= &prepare_to_qc_prepare,
 };
@@ -159,9 +154,9 @@ muic_afc_data_t prepare_to_afc_5v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_5V_MUIC,
 	.afc_name		= "AFC charger 5V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_5V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_5V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_PREPARE_TO_AFC_5V,
 	.next			= &prepare_to_qc_prepare,
 };
@@ -170,9 +165,9 @@ muic_afc_data_t prepare_to_prepare_dupli = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_PREPARE_DUPLI_MUIC,
 	.afc_name		= "AFC charger prepare (mrxrdy)",
 	.afc_irq		= MUIC_AFC_IRQ_MRXRDY,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_DONTCARE,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_DONTCARE,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_PREPARE_TO_PREPARE_DUPLI,
 	.next			= &prepare_to_afc_5v,
 };
@@ -182,9 +177,9 @@ muic_afc_data_t prepare_dupli_to_qc_prepare = {
 	.new_dev		= ATTACHED_DEV_QC_CHARGER_PREPARE_MUIC,
 	.afc_name		= "QC charger Prepare",
 	.afc_irq		= MUIC_AFC_IRQ_MPNACK,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DONTCARE,
-	.status3_vbadc		= VBADC_DONTCARE,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DONTCARE,
+	.gpstatus_vbadc		= VBADC_DONTCARE,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_PREPARE_DUPLI_TO_QC_PREPARE,
 	.next			= &prepare_dupli_to_qc_prepare,
 };
@@ -193,9 +188,9 @@ muic_afc_data_t prepare_dupli_to_prepare_dupli = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_PREPARE_DUPLI_MUIC,
 	.afc_name		= "AFC charger prepare (mrxrdy)",
 	.afc_irq		= MUIC_AFC_IRQ_MRXRDY,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_DONTCARE,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_DONTCARE,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_PREPARE_DUPLI_TO_PREPARE_DUPLI,
 	.next			= &prepare_dupli_to_qc_prepare,
 };
@@ -205,9 +200,9 @@ muic_afc_data_t prepare_dupli_to_afc_12v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_12V_MUIC,
 	.afc_name		= "AFC charger 12V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_12V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_12V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_PREPARE_DUPLI_TO_AFC_12V,
 	.next			= &prepare_dupli_to_prepare_dupli,
 };
@@ -217,9 +212,9 @@ muic_afc_data_t prepare_dupli_to_afc_9v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_9V_MUIC,
 	.afc_name		= "AFC charger 9V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_9V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_9V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_PREPARE_DUPLI_TO_AFC_9V,
 #if defined(CONFIG_MUIC_HV_12V)
 	.next			= &prepare_dupli_to_afc_12v,
@@ -232,9 +227,9 @@ muic_afc_data_t prepare_dupli_to_afc_err_v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_ERR_V_MUIC,
 	.afc_name		= "AFC charger ERR V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_ERR_V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_ERR_V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_PREPARE_DUPLI_TO_AFC_ERR_V,
 	.next			= &prepare_dupli_to_afc_9v,
 };
@@ -243,9 +238,9 @@ muic_afc_data_t prepare_dupli_to_afc_5v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_5V_MUIC,
 	.afc_name		= "AFC charger 5V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_5V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_5V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_PREPARE_DUPLI_TO_AFC_5V,
 	.next			= &prepare_dupli_to_afc_err_v,
 };
@@ -255,9 +250,9 @@ muic_afc_data_t afc_5v_to_qc_prepare = {
 	.new_dev		= ATTACHED_DEV_QC_CHARGER_PREPARE_MUIC,
 	.afc_name		= "QC charger Prepare",
 	.afc_irq		= MUIC_AFC_IRQ_MPNACK,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DONTCARE,
-	.status3_vbadc		= VBADC_DONTCARE,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DONTCARE,
+	.gpstatus_vbadc		= VBADC_DONTCARE,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_5V_TO_QC_PREPARE,
 	.next			= &afc_5v_to_qc_prepare,
 };
@@ -267,9 +262,9 @@ muic_afc_data_t afc_5v_to_afc_12v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_12V_MUIC,
 	.afc_name		= "AFC charger 12V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_12V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_12V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_5V_TO_AFC_12V,
 	.next			= &afc_5v_to_qc_prepare,
 };
@@ -279,9 +274,9 @@ muic_afc_data_t afc_5v_to_afc_9v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_9V_MUIC,
 	.afc_name		= "AFC charger 9V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_9V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_9V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_5V_TO_AFC_9V,
 #if defined(CONFIG_MUIC_HV_12V)
 	.next			= &afc_5v_to_afc_12v,
@@ -294,9 +289,9 @@ muic_afc_data_t afc_5v_to_afc_err_v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_ERR_V_MUIC,
 	.afc_name		= "AFC charger ERR V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_ERR_V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_ERR_V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_5V_TO_AFC_ERR_V,
 	.next			= &afc_5v_to_afc_9v,
 };
@@ -305,9 +300,9 @@ muic_afc_data_t afc_5v_to_afc_5v_dupli = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_5V_DUPLI_MUIC,
 	.afc_name		= "AFC charger 5V (mrxrdy)",
 	.afc_irq		= MUIC_AFC_IRQ_MRXRDY,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_5V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_5V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_5V_TO_AFC_5V_DUPLI,
 	.next			= &afc_5v_to_afc_err_v,
 };
@@ -317,9 +312,9 @@ muic_afc_data_t afc_5v_dupli_to_qc_prepare = {
 	.new_dev		= ATTACHED_DEV_QC_CHARGER_PREPARE_MUIC,
 	.afc_name		= "QC charger Prepare",
 	.afc_irq		= MUIC_AFC_IRQ_MPNACK,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DONTCARE,
-	.status3_vbadc		= VBADC_DONTCARE,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DONTCARE,
+	.gpstatus_vbadc		= VBADC_DONTCARE,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_5V_DUPLI_TO_QC_PREPARE,
 	.next			= &afc_5v_dupli_to_qc_prepare,
 };
@@ -329,9 +324,9 @@ muic_afc_data_t afc_5v_dupli_to_afc_12v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_12V_MUIC,
 	.afc_name		= "AFC charger 12V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_12V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_12V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_5V_DUPLI_TO_AFC_12V,
 	.next			= &afc_5v_dupli_to_qc_prepare,
 };
@@ -340,9 +335,9 @@ muic_afc_data_t afc_5v_dupli_to_afc_5v_dupli = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_5V_DUPLI_MUIC,
 	.afc_name		= "AFC charger 5V (mrxrdy)",
 	.afc_irq		= MUIC_AFC_IRQ_MRXRDY,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_5V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_5V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_5V_DUPLI_TO_AFC_5V_DUPLI,
 	.next			= &afc_5v_dupli_to_afc_12v,
 };
@@ -351,9 +346,9 @@ muic_afc_data_t afc_5v_dupli_to_afc_5v_dupli = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_5V_DUPLI_MUIC,
 	.afc_name		= "AFC charger 5V (mrxrdy)",
 	.afc_irq		= MUIC_AFC_IRQ_MRXRDY,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_5V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_5V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_5V_DUPLI_TO_AFC_5V_DUPLI,
 	.next			= &afc_5v_dupli_to_qc_prepare,
 };
@@ -363,9 +358,9 @@ muic_afc_data_t afc_5v_dupli_to_afc_9v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_9V_MUIC,
 	.afc_name		= "AFC charger 9V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_9V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_9V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_5V_DUPLI_TO_AFC_9V,
 	.next			= &afc_5v_dupli_to_afc_5v_dupli,
 };
@@ -374,9 +369,9 @@ muic_afc_data_t afc_5v_dupli_to_afc_err_v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_ERR_V_MUIC,
 	.afc_name		= "AFC charger ERR V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_ERR_V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_ERR_V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_5V_DUPLI_TO_AFC_ERR_V,
 	.next			= &afc_5v_dupli_to_afc_9v,
 };
@@ -386,9 +381,9 @@ muic_afc_data_t afc_err_v_to_qc_prepare = {
 	.new_dev		= ATTACHED_DEV_QC_CHARGER_PREPARE_MUIC,
 	.afc_name		= "QC charger Prepare",
 	.afc_irq		= MUIC_AFC_IRQ_MPNACK,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DONTCARE,
-	.status3_vbadc		= VBADC_DONTCARE,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DONTCARE,
+	.gpstatus_vbadc		= VBADC_DONTCARE,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_ERR_V_TO_QC_PREPARE,
 	.next			= &afc_err_v_to_qc_prepare,
 };
@@ -398,9 +393,9 @@ muic_afc_data_t afc_err_v_to_afc_12v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_12V_MUIC,
 	.afc_name		= "AFC charger 12V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_12V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_12V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_ERR_V_TO_AFC_12V,
 	.next			= &afc_err_v_to_qc_prepare,
 };
@@ -410,9 +405,9 @@ muic_afc_data_t afc_err_v_to_afc_5v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_5V_MUIC,
 	.afc_name		= "AFC charger 5V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_5V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_5V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_ERR_V_TO_AFC_5V,
 #if defined(CONFIG_MUIC_HV_12V)
 	.next			= &afc_err_v_to_afc_12v,
@@ -425,9 +420,9 @@ muic_afc_data_t afc_err_v_to_afc_9v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_9V_MUIC,
 	.afc_name		= "AFC charger 9V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_9V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_9V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_ERR_V_TO_AFC_9V,
 	.next			= &afc_err_v_to_afc_5v,
 };
@@ -436,9 +431,9 @@ muic_afc_data_t afc_err_v_to_afc_err_v_dupli = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_ERR_V_DUPLI_MUIC,
 	.afc_name		= "AFC charger ERR V (mrxrdy)",
 	.afc_irq		= MUIC_AFC_IRQ_MRXRDY,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_ERR_V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_ERR_V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_ERR_V_TO_AFC_ERR_V_DUPLI,
 	.next			= &afc_err_v_to_afc_9v,
 };
@@ -448,9 +443,9 @@ muic_afc_data_t afc_err_v_dupli_to_qc_prepare = {
 	.new_dev		= ATTACHED_DEV_QC_CHARGER_PREPARE_MUIC,
 	.afc_name		= "QC charger Prepare",
 	.afc_irq		= MUIC_AFC_IRQ_MPNACK,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DONTCARE,
-	.status3_vbadc		= VBADC_DONTCARE,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DONTCARE,
+	.gpstatus_vbadc		= VBADC_DONTCARE,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_ERR_V_DUPLI_TO_QC_PREPARE,
 	.next			= &afc_err_v_dupli_to_qc_prepare,
 };
@@ -460,9 +455,9 @@ muic_afc_data_t afc_err_v_dupli_to_afc_12v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_12V_MUIC,
 	.afc_name		= "AFC charger 12V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_12V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_12V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_ERR_V_DUPLI_TO_AFC_12V,
 	.next			= &afc_err_v_dupli_to_qc_prepare,
 };
@@ -472,9 +467,9 @@ muic_afc_data_t afc_err_v_dupli_to_afc_5v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_5V_MUIC,
 	.afc_name		= "AFC charger 5V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_5V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_5V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_ERR_V_DUPLI_TO_AFC_5V,
 #if defined(CONFIG_MUIC_HV_12V)
 	.next			= &afc_err_v_dupli_to_afc_12v,
@@ -487,9 +482,9 @@ muic_afc_data_t afc_err_v_dupli_to_afc_9v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_9V_MUIC,
 	.afc_name		= "AFC charger 9V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_9V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_9V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_ERR_V_DUPLI_TO_AFC_9V,
 	.next			= &afc_err_v_dupli_to_afc_5v,
 };
@@ -498,9 +493,9 @@ muic_afc_data_t afc_err_v_dupli_to_afc_err_v_dupli = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_ERR_V_DUPLI_MUIC,
 	.afc_name		= "AFC charger ERR V (mrxrdy)",
 	.afc_irq		= MUIC_AFC_IRQ_MRXRDY,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_ERR_V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_ERR_V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_ERR_V_DUPLI_TO_AFC_ERR_V_DUPLI,
 	.next			= &afc_err_v_dupli_to_afc_9v,
 };
@@ -510,9 +505,9 @@ muic_afc_data_t afc_9v_to_qc_prepare = {
 	.new_dev		= ATTACHED_DEV_QC_CHARGER_PREPARE_MUIC,
 	.afc_name		= "QC charger Prepare",
 	.afc_irq		= MUIC_AFC_IRQ_MPNACK,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DONTCARE,
-	.status3_vbadc		= VBADC_DONTCARE,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DONTCARE,
+	.gpstatus_vbadc		= VBADC_DONTCARE,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_9V_TO_QC_PREPARE,
 	.next			= &afc_9v_to_qc_prepare,
 };
@@ -521,13 +516,13 @@ muic_afc_data_t afc_9v_to_afc_err_v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_ERR_V_MUIC,
 	.afc_name		= "AFC charger ERR V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
 #if defined(CONFIG_MUIC_HV_12V)
-	.status3_vbadc		= VBADC_DONTCARE, // 12V should be error
+	.gpstatus_vbadc		= VBADC_DONTCARE, // 12V should be error
 #else
-	.status3_vbadc		= VBADC_AFC_ERR_V,
+	.gpstatus_vbadc		= VBADC_AFC_ERR_V,
 #endif
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_9V_TO_AFC_ERR_V,
 	.next			= &afc_9v_to_qc_prepare,
 };
@@ -536,9 +531,9 @@ muic_afc_data_t afc_9v_to_afc_5v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_5V_MUIC,
 	.afc_name		= "AFC charger 5V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_5V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_5V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_9V_TO_AFC_5V,
 	.next			= &afc_9v_to_afc_err_v,
 };
@@ -547,9 +542,9 @@ muic_afc_data_t afc_9v_to_afc_9v_dupli = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_9V_DUPLI_MUIC,
 	.afc_name		= "AFC charger 9V (mrxrdy)",
 	.afc_irq		= MUIC_AFC_IRQ_MRXRDY,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_9V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_9V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_9V_TO_AFC_9V_DUPLI,
 	.next			= &afc_9v_to_afc_5v,
 };
@@ -559,9 +554,9 @@ muic_afc_data_t afc_9v_dupli_to_qc_prepare = {
 	.new_dev		= ATTACHED_DEV_QC_CHARGER_PREPARE_MUIC,
 	.afc_name		= "QC charger Prepare",
 	.afc_irq		= MUIC_AFC_IRQ_MPNACK,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DONTCARE,
-	.status3_vbadc		= VBADC_DONTCARE,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DONTCARE,
+	.gpstatus_vbadc		= VBADC_DONTCARE,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_9V_DUPLI_TO_QC_PREPARE,
 	.next			= &afc_9v_dupli_to_qc_prepare,
 };
@@ -570,13 +565,13 @@ muic_afc_data_t afc_9v_dupli_to_afc_err_v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_ERR_V_MUIC,
 	.afc_name		= "AFC charger ERR V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
 #if defined(CONFIG_MUIC_HV_12V)
-	.status3_vbadc		= VBADC_DONTCARE, // 12V should be error
+	.gpstatus_vbadc		= VBADC_DONTCARE, // 12V should be error
 #else
-	.status3_vbadc		= VBADC_AFC_ERR_V,
+	.gpstatus_vbadc		= VBADC_AFC_ERR_V,
 #endif
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_9V_DUPLI_TO_AFC_ERR_V,
 	.next			= &afc_9v_dupli_to_qc_prepare,
 };
@@ -585,9 +580,9 @@ muic_afc_data_t afc_9v_dupli_to_afc_5v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_5V_MUIC,
 	.afc_name		= "AFC charger 5V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_5V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_5V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_9V_DUPLI_TO_AFC_5V,
 	.next			= &afc_9v_dupli_to_afc_err_v,
 };
@@ -596,9 +591,9 @@ muic_afc_data_t afc_9v_dupli_to_afc_9v_dupli = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_9V_DUPLI_MUIC,
 	.afc_name		= "AFC charger 9V (mrxrdy)",
 	.afc_irq		= MUIC_AFC_IRQ_MRXRDY,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_9V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_9V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_9V_DUPLI_TO_AFC_9V_DUPLI,
 	.next			= &afc_9v_dupli_to_afc_5v,
 };
@@ -609,9 +604,9 @@ muic_afc_data_t afc_12v_to_qc_prepare = {
 	.new_dev		= ATTACHED_DEV_QC_CHARGER_PREPARE_MUIC,
 	.afc_name		= "QC charger Prepare",
 	.afc_irq		= MUIC_AFC_IRQ_MPNACK,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DONTCARE,
-	.status3_vbadc		= VBADC_DONTCARE,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DONTCARE,
+	.gpstatus_vbadc		= VBADC_DONTCARE,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_12V_TO_QC_PREPARE,
 	.next			= &afc_12v_to_qc_prepare,
 };
@@ -620,9 +615,9 @@ muic_afc_data_t afc_12v_to_afc_9v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_9V_MUIC,
 	.afc_name		= "AFC charger 9V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_9V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_9V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_12V_TO_AFC_9V,
 	.next			= &afc_12v_to_qc_prepare,
 };
@@ -631,9 +626,9 @@ muic_afc_data_t afc_12v_to_afc_5v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_5V_MUIC,
 	.afc_name		= "AFC charger 5V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_5V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_5V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_12V_TO_AFC_5V,
 	.next			= &afc_12v_to_afc_9v,
 };
@@ -642,9 +637,9 @@ muic_afc_data_t afc_12v_to_afc_err_v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_ERR_V_MUIC,
 	.afc_name		= "AFC charger ERR V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_ERR_V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_ERR_V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_12V_TO_AFC_ERR_V,
 	.next			= &afc_12v_to_afc_5v,
 };
@@ -653,9 +648,9 @@ muic_afc_data_t afc_12v_to_afc_12v_dupli = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_12V_DUPLI_MUIC,
 	.afc_name		= "AFC charger 12V (mrxrdy)",
 	.afc_irq		= MUIC_AFC_IRQ_MRXRDY,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_12V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_12V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_12V_TO_AFC_12V_DUPLI,
 	.next			= &afc_12v_to_afc_err_v,
 };
@@ -665,9 +660,9 @@ muic_afc_data_t afc_12v_dupli_to_qc_prepare = {
 	.new_dev		= ATTACHED_DEV_QC_CHARGER_PREPARE_MUIC,
 	.afc_name		= "QC charger Prepare",
 	.afc_irq		= MUIC_AFC_IRQ_MPNACK,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DONTCARE,
-	.status3_vbadc		= VBADC_DONTCARE,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DONTCARE,
+	.gpstatus_vbadc		= VBADC_DONTCARE,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_12V_DUPLI_TO_QC_PREPARE,
 	.next			= &afc_12v_dupli_to_qc_prepare,
 };
@@ -676,9 +671,9 @@ muic_afc_data_t afc_12v_dupli_to_afc_12v_dupli = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_12V_DUPLI_MUIC,
 	.afc_name		= "AFC charger 12V (mrxrdy)",
 	.afc_irq		= MUIC_AFC_IRQ_MRXRDY,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_12V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_12V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_12V_DUPLI_TO_AFC_12V_DUPLI,
 	.next			= &afc_12v_dupli_to_qc_prepare,
 };
@@ -687,9 +682,9 @@ muic_afc_data_t afc_12v_dupli_to_afc_9v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_9V_MUIC,
 	.afc_name		= "AFC charger 9V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_9V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_9V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_12V_DUPLI_TO_AFC_9V,
 	.next			= &afc_12v_dupli_to_afc_12v_dupli,
 };
@@ -698,9 +693,9 @@ muic_afc_data_t afc_12v_dupli_to_afc_5v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_5V_MUIC,
 	.afc_name		= "AFC charger 5V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_5V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_5V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_12V_DUPLI_TO_AFC_5V,
 	.next			= &afc_12v_dupli_to_afc_9v,
 };
@@ -709,9 +704,9 @@ muic_afc_data_t afc_12v_dupli_to_afc_err_v = {
 	.new_dev		= ATTACHED_DEV_AFC_CHARGER_ERR_V_MUIC,
 	.afc_name		= "AFC charger ERR V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DISABLE,
-	.status3_vbadc		= VBADC_AFC_ERR_V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_DISABLE,
+	.gpstatus_vbadc		= VBADC_AFC_ERR_V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_AFC_12V_DUPLI_TO_AFC_ERR_V,
 	.next			= &afc_12v_dupli_to_afc_5v,
 };
@@ -722,9 +717,9 @@ muic_afc_data_t qc_prepare_to_qc_9v = {
 	.new_dev		= ATTACHED_DEV_QC_CHARGER_9V_MUIC,
 	.afc_name		= "QC charger 9V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_ENABLE,
-	.status3_vbadc		= VBADC_QC_9V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_ENABLE,
+	.gpstatus_vbadc		= VBADC_QC_9V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_QC_PREPARE_TO_QC_9V,
 	.next			= &qc_prepare_to_qc_9v,
 };
@@ -733,9 +728,9 @@ muic_afc_data_t qc_prepare_to_qc_5v = {
 	.new_dev		= ATTACHED_DEV_QC_CHARGER_5V_MUIC,
 	.afc_name		= "QC charger 5V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_ENABLE,
-	.status3_vbadc		= VBADC_QC_5V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_ENABLE,
+	.gpstatus_vbadc		= VBADC_QC_5V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_QC_PREPARE_TO_QC_5V,
 	.next			= &qc_prepare_to_qc_9v,
 };
@@ -745,9 +740,9 @@ muic_afc_data_t qc_5v_to_qc_9v = {
 	.new_dev		= ATTACHED_DEV_QC_CHARGER_9V_MUIC,
 	.afc_name		= "QC charger 9V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_ENABLE,
-	.status3_vbadc		= VBADC_QC_9V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_ENABLE,
+	.gpstatus_vbadc		= VBADC_QC_9V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_QC_5V_TO_QC_9V,
 	.next			= &qc_5v_to_qc_9v,
 };
@@ -757,71 +752,30 @@ muic_afc_data_t qc_9v_to_qc_5v = {
 	.new_dev		= ATTACHED_DEV_QC_CHARGER_5V_MUIC,
 	.afc_name		= "QC charger 5V",
 	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_ENABLE,
-	.status3_vbadc		= VBADC_QC_5V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
+	.bccontrol2_dpdnman	= DPDNVDEN_ENABLE,
+	.gpstatus_vbadc		= VBADC_QC_5V,
+	.bcstatus2_vdnmon	= VDNMON_DONTCARE,
 	.function_num		= FUNC_QC_9V_TO_QC_5V,
 	.next			= &qc_9v_to_qc_5v,
 };
 
-#if defined(CONFIG_MUIC_HV_SUPPORT_POGO_DOCK)
-/* afc_condition_checklist[ATTACHED_DEV_POGO_DOCK_MUIC] */
-muic_afc_data_t pogo_dock_to_pogo_dock_9v = {
-	.new_dev		= ATTACHED_DEV_POGO_DOCK_9V_MUIC,
-	.afc_name		= "Pogo Dock 9V",
-	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DONTCARE,
-	.status3_vbadc		= VBADC_AFC_9V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
-	.function_num		= FUNC_POGO_DOCK_TO_POGO_DOCK_9V,
-	.next			= &pogo_dock_to_pogo_dock_9v,
-};
-
-muic_afc_data_t pogo_dock_to_pogo_dock_5v = {
-	.new_dev		= ATTACHED_DEV_POGO_DOCK_5V_MUIC,
-	.afc_name		= "Pogo Dock 5V",
-	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DONTCARE,
-	.status3_vbadc		= VBADC_AFC_5V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
-	.function_num		= FUNC_POGO_DOCK_TO_POGO_DOCK_5V,
-	.next			= &pogo_dock_to_pogo_dock_9v,
-};
-
-/* afc_condition_checklist[ATTACHED_DEV_POGO_DOCK_5V_MUIC] */
-muic_afc_data_t pogo_dock_5v_to_pogo_dock_9v = {
-	.new_dev		= ATTACHED_DEV_POGO_DOCK_9V_MUIC,
-	.afc_name		= "Pogo Dock 9V",
-	.afc_irq		= MUIC_AFC_IRQ_VBADC,
-	.hvcontrol1_dpdnvden	= DPDNVDEN_DONTCARE,
-	.status3_vbadc		= VBADC_AFC_9V,
-	.status3_vdnmon		= VDNMON_DONTCARE,
-	.function_num		= FUNC_POGO_DOCK_5V_TO_POGO_DOCK_9V,
-	.next			= &pogo_dock_5v_to_pogo_dock_9v,
-};
-#endif
-
-muic_afc_data_t		*afc_condition_checklist[ATTACHED_DEV_NUM] = {
-	[ATTACHED_DEV_TA_MUIC]			= &ta_to_prepare,
-	[ATTACHED_DEV_AFC_CHARGER_PREPARE_MUIC]	= &prepare_to_prepare_dupli,
-	[ATTACHED_DEV_AFC_CHARGER_PREPARE_DUPLI_MUIC] = &prepare_dupli_to_afc_5v,
-	[ATTACHED_DEV_AFC_CHARGER_5V_MUIC]	= &afc_5v_to_afc_5v_dupli,
-	[ATTACHED_DEV_AFC_CHARGER_5V_DUPLI_MUIC]= &afc_5v_dupli_to_afc_err_v,
-	[ATTACHED_DEV_AFC_CHARGER_ERR_V_MUIC]	= &afc_err_v_to_afc_err_v_dupli,
-	[ATTACHED_DEV_AFC_CHARGER_ERR_V_DUPLI_MUIC] = &afc_err_v_dupli_to_afc_err_v_dupli,
-	[ATTACHED_DEV_AFC_CHARGER_9V_MUIC]	= &afc_9v_to_afc_9v_dupli,
-	[ATTACHED_DEV_AFC_CHARGER_9V_DUPLI_MUIC]= &afc_9v_dupli_to_afc_9v_dupli,
+muic_afc_data_t	*afc_condition_checklist[ATTACHED_DEV_NUM] = {
+	[ATTACHED_DEV_TA_MUIC]				= &ta_to_prepare,
+	[ATTACHED_DEV_AFC_CHARGER_PREPARE_MUIC]		= &prepare_to_prepare_dupli,
+	[ATTACHED_DEV_AFC_CHARGER_PREPARE_DUPLI_MUIC]	= &prepare_dupli_to_afc_5v,
+	[ATTACHED_DEV_AFC_CHARGER_5V_MUIC]		= &afc_5v_to_afc_5v_dupli,
+	[ATTACHED_DEV_AFC_CHARGER_5V_DUPLI_MUIC]	= &afc_5v_dupli_to_afc_err_v,
+	[ATTACHED_DEV_AFC_CHARGER_ERR_V_MUIC]		= &afc_err_v_to_afc_err_v_dupli,
+	[ATTACHED_DEV_AFC_CHARGER_ERR_V_DUPLI_MUIC]	= &afc_err_v_dupli_to_afc_err_v_dupli,
+	[ATTACHED_DEV_AFC_CHARGER_9V_MUIC]		= &afc_9v_to_afc_9v_dupli,
+	[ATTACHED_DEV_AFC_CHARGER_9V_DUPLI_MUIC]	= &afc_9v_dupli_to_afc_9v_dupli,
 #if defined(CONFIG_MUIC_HV_12V)
-	[ATTACHED_DEV_AFC_CHARGER_12V_MUIC]	= &afc_12v_to_afc_12v_dupli,
-	[ATTACHED_DEV_AFC_CHARGER_12V_DUPLI_MUIC]= &afc_12v_dupli_to_afc_err_v,
+	[ATTACHED_DEV_AFC_CHARGER_12V_MUIC]		= &afc_12v_to_afc_12v_dupli,
+	[ATTACHED_DEV_AFC_CHARGER_12V_DUPLI_MUIC]	= &afc_12v_dupli_to_afc_err_v,
 #endif
-	[ATTACHED_DEV_QC_CHARGER_PREPARE_MUIC]	= &qc_prepare_to_qc_9v,
-	[ATTACHED_DEV_QC_CHARGER_5V_MUIC]	= &qc_5v_to_qc_9v,
-	[ATTACHED_DEV_QC_CHARGER_9V_MUIC]	= &qc_9v_to_qc_5v,
-#if defined(CONFIG_MUIC_HV_SUPPORT_POGO_DOCK)
-	[ATTACHED_DEV_POGO_DOCK_MUIC]		= &pogo_dock_to_pogo_dock_5v,
-	[ATTACHED_DEV_POGO_DOCK_5V_MUIC]	= &pogo_dock_5v_to_pogo_dock_9v,
-#endif
+	[ATTACHED_DEV_QC_CHARGER_PREPARE_MUIC]		= &qc_prepare_to_qc_9v,
+	[ATTACHED_DEV_QC_CHARGER_5V_MUIC]		= &qc_5v_to_qc_9v,
+	[ATTACHED_DEV_QC_CHARGER_9V_MUIC]		= &qc_9v_to_qc_5v,
 };
 
 struct afc_init_data_s {
@@ -875,7 +829,7 @@ muic_attached_dev_t hv_muic_check_id_err
 
 	switch(new_dev) {
 	case ATTACHED_DEV_TA_MUIC:
-#if defined(CONFIG_MUIC_SUPPORT_CCIC)
+#if !defined(CONFIG_SEC_FACTORY) && defined(CONFIG_MUIC_SUPPORT_CCIC)
 		if (phv->pmuic->is_ccic_afc_enable == Rp_Abnormal)
 			goto out;
 #endif
@@ -901,9 +855,8 @@ out:
 }
 
 /*
-static int max77854_hv_muic_read_reg(struct i2c_client *i2c, u8 reg, u8 *value)
+static int max77865_hv_muic_read_reg(struct i2c_client *i2c, u8 reg, u8 *value)
 {
-
 	value = (u8 *)muic_i2c_read_byte(i2c, reg);
 	if (value < 0)
 		pr_err("%s:%s err read REG(0x%02x) [%d]\n", MUIC_HV_DEV_NAME,
@@ -911,7 +864,7 @@ static int max77854_hv_muic_read_reg(struct i2c_client *i2c, u8 reg, u8 *value)
 	return *value;
 }
 */
-static int max77854_hv_muic_write_reg(struct i2c_client *i2c, u8 reg, u8 value)
+static int max77865_hv_muic_write_reg(struct i2c_client *i2c, u8 reg, u8 value)
 {
 	u8 before_val, after_val;
 	int ret;
@@ -925,7 +878,7 @@ static int max77854_hv_muic_write_reg(struct i2c_client *i2c, u8 reg, u8 value)
 	return ret;
 }
 
-int max77854_muic_hv_update_reg(struct i2c_client *i2c,
+int max77865_muic_hv_update_reg(struct i2c_client *i2c,
 	const u8 reg, const u8 val, const u8 mask, const bool debug_en)
 {
 	u8 before_val, new_val, after_val =0;
@@ -939,7 +892,7 @@ int max77854_muic_hv_update_reg(struct i2c_client *i2c,
 	new_val = (val & mask) | (before_val & (~mask));
 
 	if (before_val ^ new_val) {
-		ret = max77854_hv_muic_write_reg(i2c, reg, new_val);
+		ret = max77865_hv_muic_write_reg(i2c, reg, new_val);
 		if (ret)
 			pr_err("%s:%s err write REG(0x%02x) [%d]\n",
 					MUIC_DEV_NAME, __func__, reg, ret);
@@ -964,15 +917,16 @@ out:
 	return after_val;
 }
 
-void max77854_hv_muic_reset_hvcontrol_reg(struct hv_data *phv)
+void max77865_hv_muic_reset_hvcontrol_reg(struct hv_data *phv)
 {
 	struct i2c_client *i2c = phv->i2c;
 
-	max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVCONTROL1, 0x00);
-	max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVCONTROL2, 0x00);
+	max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_CONTROL2_BC, 0x00);
+	max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_HVCONTROL1, 0x00);
+	max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_HVCONTROL2, 0x00);
 }
 
-static void max77854_muic_set_afc_ready(struct hv_data *phv, bool value)
+static void max77865_muic_set_afc_ready(struct hv_data *phv, bool value)
 {
 	bool before, after;
 
@@ -983,7 +937,7 @@ static void max77854_muic_set_afc_ready(struct hv_data *phv, bool value)
 	pr_info("%s:%s afc_muic_ready[%d->%d]\n", MUIC_DEV_NAME, __func__, before, after);
 }
 
-static int max77854_hv_muic_state_maintain(struct hv_data *phv)
+static int max77865_hv_muic_state_maintain(struct hv_data *phv)
 {
 	int ret = 0;
 
@@ -998,7 +952,7 @@ static int max77854_hv_muic_state_maintain(struct hv_data *phv)
 	return ret;
 }
 
-static void max77854_hv_muic_set_afc_after_prepare
+static void max77865_hv_muic_set_afc_after_prepare
 					(struct hv_data *phv)
 {
 	struct i2c_client *i2c = phv->i2c;
@@ -1007,23 +961,23 @@ static void max77854_hv_muic_set_afc_after_prepare
 	pr_info("%s:%s HV charger is detected\n", MUIC_HV_DEV_NAME, __func__);
 
 	/* Set HVCONTROL2 = 0x02 */
-	max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVCONTROL2,
-						HVCONTROL2_DP06EN_MASK);
+	max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_HVCONTROL2, HVCONTROL2_DP06EN_MASK);
 
-	/* Set HVCONTROL1 - disable DPVD, DPDNVDEN */
-	max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVCONTROL1, 0x20);
+	/* Set HVCONTROL1 - Enable VbusADCEn / Disable DPVD, DPDNVDEN */
+	max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_HVCONTROL1, HVCONTROL1_VBUSADCEN_MASK);
+	// CIS - Need check, CL54: HI-Z -> CL65: OPEN??
+	max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_CONTROL2_BC, 0x0F);
 
 	/* Set TX DATA */
 	value = phv->tx_data;
 
-	max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVTXBYTE, value);
+	max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_HVTXBYTE, value);
 
-	/* Set HVCONTROL2 = 0x5B */
-	max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVCONTROL2, MAX77854_MUIC_HVCONTROL2_5B);
-
+	/* Set HVCONTROL2 = Enable MPingEnb, MTxEn, MPing, DP06En, HVDigEn */
+	max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_HVCONTROL2, 0x5B);
 }
 
-static void max77854_hv_muic_set_afc_charger_handshaking
+static void max77865_hv_muic_set_afc_charger_handshaking
 			(struct hv_data *phv)
 {
 	struct i2c_client *i2c = phv->i2c;
@@ -1041,14 +995,14 @@ static void max77854_hv_muic_set_afc_charger_handshaking
 	memset(hvrxbyte_str, 0x00, sizeof(hvrxbyte_str));	
 	memset(temp_buf, 0x00, sizeof(temp_buf));
 
-	ret = max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVCONTROL2, 0x13);
+	ret = max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_HVCONTROL2, 0x13);
 	if (IS_ERR_VALUE(ret))
 		pr_err("%s:%s cannot write hvcontrol2(%d)\n", MUIC_HV_DEV_NAME, __func__, ret);
 
-	hvtxbyte = muic_i2c_read_byte(i2c, MAX77854_MUIC_REG_HVTXBYTE);
+	hvtxbyte = muic_i2c_read_byte(i2c, MAX77865_MUIC_REG_HVTXBYTE);
 
 	for(i = 0; i < HVRXBYTE_MAX; i++) {
-		hvrxbyte[i] = muic_i2c_read_byte(i2c, (MAX77854_MUIC_REG_HVRXBYTE1+i));
+		hvrxbyte[i] = muic_i2c_read_byte(i2c, (MAX77865_MUIC_REG_HVRXBYTE1+i));
 		if(hvrxbyte[i] == 0x47)
 			hvrxbyte[i] = 0x46;
 		if(hvrxbyte[i] == 0)
@@ -1088,7 +1042,7 @@ static void max77854_hv_muic_set_afc_charger_handshaking
 			}
 		}
 		if(selecthvtxbyte != 0)
-			max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVTXBYTE, selecthvtxbyte);
+			max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_HVTXBYTE, selecthvtxbyte);
 	}
 #else
 	if(hvrxbyte[0] != hvtxbyte) {
@@ -1099,14 +1053,14 @@ static void max77854_hv_muic_set_afc_charger_handshaking
 			}
 		}
 		if(selecthvtxbyte != 0)
-			max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVTXBYTE, selecthvtxbyte);
+			max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_HVTXBYTE, selecthvtxbyte);
 	}
 #endif
 
 	return;
 }
 
-static void max77854_hv_muic_afc_control_ping
+static void max77865_hv_muic_afc_control_ping
 		(struct hv_data *phv, bool ping_continue)
 {
 	int ret;
@@ -1115,9 +1069,9 @@ static void max77854_hv_muic_afc_control_ping
 				phv->afc_count, ping_continue ? 'T' : 'F');
 
 	if (ping_continue)
-		ret = max77854_hv_muic_write_reg(phv->i2c, MAX77854_MUIC_REG_HVCONTROL2, 0x5B);
+		ret = max77865_hv_muic_write_reg(phv->i2c, MAX77865_MUIC_REG_HVCONTROL2, 0x5B);
 	else
-		ret = max77854_hv_muic_write_reg(phv->i2c, MAX77854_MUIC_REG_HVCONTROL2, 0x03);
+		ret = max77865_hv_muic_write_reg(phv->i2c, MAX77865_MUIC_REG_HVCONTROL2, 0x03);
 
 	if (ret) {
 		pr_err("%s:%s cannot writing HVCONTROL2 reg(%d)\n",
@@ -1125,46 +1079,51 @@ static void max77854_hv_muic_afc_control_ping
 	}
 }
 
-static void max77854_hv_muic_qc_charger(struct hv_data *phv)
+static void max77865_hv_muic_qc_charger(struct hv_data *phv)
 {
 	struct i2c_client	*i2c = phv->i2c;
-	int ret = 0;
-	u8 status3 =0;
+	int ret1 = 0, ret2 = 0;
+	u8 bcstatus2 = 0, gpstatus = 0;
 
-	status3 = muic_i2c_read_byte(i2c, MAX77854_MUIC_REG_STATUS3);
-	if (status3 < 0) {
-		pr_err("%s:%s cannot read STATUS3 reg(%d)\n", MUIC_HV_DEV_NAME,
-						__func__, ret);
+	bcstatus2 = muic_i2c_read_byte(i2c, MAX77865_MUIC_REG_STATUS2_BC);
+	gpstatus = muic_i2c_read_byte(i2c, MAX77865_MUIC_REG_STATUS_GP);
+	if ((bcstatus2 < 0) || (gpstatus < 0)) {
+		pr_err("%s:%s cannot read STATUS reg\n", MUIC_HV_DEV_NAME, __func__);
 	}
 
-	pr_info("%s:%s STATUS3:0x%02x qc_hv:%x\n", MUIC_HV_DEV_NAME, __func__,
-						status3, phv->qc_hv);
+	pr_info("%s:%s BC_STATUS2:0x%02x GP_STATUS:0x%02x qc_hv:%x\n",
+				MUIC_HV_DEV_NAME, __func__, bcstatus2, gpstatus, phv->qc_hv);
 
 	switch (phv->qc_hv) {
 	case HV_SUPPORT_QC_9V:
-		ret = max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVCONTROL1, 0x3D);
+		ret1 = max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_HVCONTROL1, 0x01);
+		ret2 = max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_CONTROL2_BC, 0x19);
 		break;
 	case HV_SUPPORT_QC_12V:
-		ret = max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVCONTROL1, 0x35);
+		ret1 = max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_HVCONTROL1, 0x01);
+		ret2 = max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_CONTROL2_BC, 0x15);
 		break;
 	case HV_SUPPORT_QC_20V:
-		ret = max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVCONTROL1, 0x3F);
+		ret1 = max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_HVCONTROL1, 0x01);
+		ret2 = max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_CONTROL2_BC, 0x1A);
 		break;
 	case HV_SUPPORT_QC_5V:
-		ret = max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVCONTROL1, 0x33);
+		ret1 = max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_HVCONTROL1, 0x01);
+		ret2 = max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_CONTROL2_BC, 0x14);
 		break;
 	default:
 		pr_err("%s:%s not support QC Charger\n", MUIC_HV_DEV_NAME, __func__);
 		break;
 	}
 
-	if (ret) {
-		pr_err("%s:%s cannot writing HVCONTROL2 reg(%d)\n", MUIC_HV_DEV_NAME,
-			__func__, ret);
+	ret1 += ret2;
+	if (ret1) {
+		pr_err("%s:%s cannot writing HVCONTROL1 or BCCONTROL2 reg(%d)\n",
+							MUIC_HV_DEV_NAME, __func__, ret1);
 	}
 }
 
-static void max77854_hv_muic_after_qc_prepare(struct hv_data *phv)
+static void max77865_hv_muic_after_qc_prepare(struct hv_data *phv)
 {
 	pr_info("%s:%s\n", MUIC_HV_DEV_NAME, __func__);
 	phv->is_qc_vb_settle = false;
@@ -1172,7 +1131,7 @@ static void max77854_hv_muic_after_qc_prepare(struct hv_data *phv)
 	queue_delayed_work(system_power_efficient_wq, &phv->hv_muic_qc_vb_work, msecs_to_jiffies(300));
 }
 
-static void max77854_hv_muic_adcmode_switch
+static void max77865_hv_muic_adcmode_switch
 		(struct hv_data *phv, bool always_on)
 {
 	struct i2c_client	*i2c = phv->i2c;
@@ -1181,15 +1140,15 @@ static void max77854_hv_muic_adcmode_switch
 	pr_info("%s:%s always_on:%c\n", MUIC_HV_DEV_NAME, __func__, (always_on ? 'T' : 'F'));
 
 	if (always_on) {
-		set_adc_scan_mode(phv->pmuic,ADC_SCANMODE_CONTINUOUS);
-		ret = max77854_muic_hv_update_reg(i2c, MAX77854_MUIC_REG_HVCONTROL1,
-					(MAX77854_ENABLE_BIT << HVCONTROL1_VBUSADCEN_SHIFT),
+//		set_adc_scan_mode(phv->pmuic,ADC_SCANMODE_CONTINUOUS);
+		ret = max77865_muic_hv_update_reg(i2c, MAX77865_MUIC_REG_HVCONTROL1,
+					(MAX77865_ENABLE_BIT << HVCONTROL1_VBUSADCEN_SHIFT),
 					HVCONTROL1_VBUSADCEN_MASK, true);
 	} else {
-		set_adc_scan_mode(phv->pmuic,ADC_SCANMODE_ONESHOT);
+//		set_adc_scan_mode(phv->pmuic,ADC_SCANMODE_ONESHOT);
 		/* non MAXIM */
-		ret = max77854_muic_hv_update_reg(i2c, MAX77854_MUIC_REG_HVCONTROL1,
-					(MAX77854_DISABLE_BIT << HVCONTROL1_VBUSADCEN_SHIFT),
+		ret = max77865_muic_hv_update_reg(i2c, MAX77865_MUIC_REG_HVCONTROL1,
+					(MAX77865_DISABLE_BIT << HVCONTROL1_VBUSADCEN_SHIFT),
 					HVCONTROL1_VBUSADCEN_MASK, true);
 	}
 
@@ -1197,19 +1156,19 @@ static void max77854_hv_muic_adcmode_switch
 		pr_err("%s:%s cannot switch adcmode(%d)\n", MUIC_HV_DEV_NAME, __func__, ret);
 }
 
-static void max77854_hv_muic_adcmode_always_on(struct hv_data *phv)
+static void max77865_hv_muic_adcmode_always_on(struct hv_data *phv)
 {
 	pr_info("%s:%s\n", MUIC_HV_DEV_NAME, __func__);
-	max77854_hv_muic_adcmode_switch(phv, true);
+	max77865_hv_muic_adcmode_switch(phv, true);
 }
 
-void max77854_hv_muic_adcmode_oneshot(struct hv_data *phv)
+void max77865_hv_muic_adcmode_oneshot(struct hv_data *phv)
 {
 	pr_info("%s:%s\n", MUIC_HV_DEV_NAME, __func__);
-	max77854_hv_muic_adcmode_switch(phv, false);
+	max77865_hv_muic_adcmode_switch(phv, false);
 }
 
-void max77854_hv_muic_connect_start(struct hv_data *phv)
+void max77865_hv_muic_connect_start(struct hv_data *phv)
 {
 	pr_info("%s:%s\n", MUIC_HV_DEV_NAME, __func__);
 
@@ -1218,8 +1177,8 @@ void max77854_hv_muic_connect_start(struct hv_data *phv)
 	/* update MUIC's attached_dev */
 	phv->pmuic->attached_dev = phv->attached_dev;
 
-	max77854_hv_muic_adcmode_always_on(phv);
-	max77854_hv_muic_set_afc_after_prepare(phv);
+	max77865_hv_muic_adcmode_always_on(phv);
+	max77865_hv_muic_set_afc_after_prepare(phv);
 	phv->afc_count = 0;
 	phv->is_afc_handshaking = false;
 	/*
@@ -1239,13 +1198,11 @@ void max77854_hv_muic_connect_start(struct hv_data *phv)
 #endif
 }
 
-static int max77854_hv_muic_handle_attach
+static int max77865_hv_muic_handle_attach
 		(struct hv_data *phv, const muic_afc_data_t *new_afc_data)
 {
 	int ret = 0;
-#if defined(CONFIG_MUIC_NOTIFIER)
 	bool noti = true;
-#endif
 	muic_attached_dev_t	new_dev	= new_afc_data->new_dev;
 	int mping_missed = (phv->vps.hvcontrol[1] & 0x8);
 	if (mping_missed)
@@ -1270,15 +1227,15 @@ static int max77854_hv_muic_handle_attach
 
 	switch (new_afc_data->function_num) {
 	case FUNC_TA_TO_PREPARE:
-#if !defined(CONFIG_MUIC_SUPPORT_CCIC)
-		pr_info("%s: 9V HV Charging Start!\n", __func__);
+#if defined(CONFIG_SEC_FACTORY) || !defined(CONFIG_MUIC_SUPPORT_CCIC)
+		pr_info("%s: FACTORY 9V HV Charging Start!\n", __func__);
 		phv->tx_data = MUIC_HV_9V;
-		max77854_hv_muic_connect_start(phv);
+		max77865_hv_muic_connect_start(phv);
 #else
 		if (phv->pmuic->is_ccic_afc_enable == Rp_56K) {
 			pr_info("%s: 9V HV Charging Start!\n", __func__);
 			phv->tx_data = MUIC_HV_9V;
-			max77854_hv_muic_connect_start(phv);
+			max77865_hv_muic_connect_start(phv);
 		} else {
 			pr_info("%s:%s First check PREPARE! AFC 5V noti.\n", MUIC_HV_DEV_NAME, __func__);
 			new_dev = ATTACHED_DEV_AFC_CHARGER_5V_MUIC;
@@ -1293,13 +1250,13 @@ static int max77854_hv_muic_handle_attach
 			MUIC_HV_DEV_NAME, __func__, new_dev);
 		cancel_delayed_work(&phv->hv_muic_mping_miss_wa);
 		phv->afc_count++;
-		max77854_hv_muic_set_afc_charger_handshaking(phv);
+		max77865_hv_muic_set_afc_charger_handshaking(phv);
 		if (!mping_missed)
 			phv->is_afc_handshaking = true;
 		if (phv->afc_count > AFC_CHARGER_WA_PING) {
-			max77854_hv_muic_afc_control_ping(phv, false);
+			max77865_hv_muic_afc_control_ping(phv, false);
 		} else {
-			max77854_hv_muic_afc_control_ping(phv, true);
+			max77865_hv_muic_afc_control_ping(phv, true);
 			noti = false;
 		}
 		break;
@@ -1313,25 +1270,25 @@ static int max77854_hv_muic_handle_attach
 			MUIC_HV_DEV_NAME, __func__, new_dev);
 		cancel_delayed_work(&phv->hv_muic_mping_miss_wa);
 		/* ping STOP */
-		ret = max77854_hv_muic_write_reg(phv->i2c, MAX77854_MUIC_REG_HVCONTROL2, 0x03);
+		ret = max77865_hv_muic_write_reg(phv->i2c, MAX77865_MUIC_REG_HVCONTROL2, 0x03);
 		if (ret) {
 			pr_err("%s:%s cannot writing HVCONTROL2 reg(%d)\n",
 					MUIC_HV_DEV_NAME, __func__, ret);
 		}
-		max77854_hv_muic_qc_charger(phv);
-		max77854_hv_muic_after_qc_prepare(phv);
+		max77865_hv_muic_qc_charger(phv);
+		max77865_hv_muic_after_qc_prepare(phv);
 		break;
 	case FUNC_PREPARE_DUPLI_TO_PREPARE_DUPLI:
 		phv->afc_count++;
 		if (!phv->is_afc_handshaking) {
-			max77854_hv_muic_set_afc_charger_handshaking(phv);
+			max77865_hv_muic_set_afc_charger_handshaking(phv);
 			if (!mping_missed)
 				phv->is_afc_handshaking = true;
 		}
 		if (phv->afc_count > AFC_CHARGER_WA_PING) {
-			max77854_hv_muic_afc_control_ping(phv, false);
+			max77865_hv_muic_afc_control_ping(phv, false);
 		} else {
-			max77854_hv_muic_afc_control_ping(phv, true);
+			max77865_hv_muic_afc_control_ping(phv, true);
 			noti = false;
 		}
 		break;
@@ -1340,25 +1297,25 @@ static int max77854_hv_muic_handle_attach
 		break;
 	case FUNC_PREPARE_DUPLI_TO_AFC_ERR_V:
 		if (phv->afc_count > AFC_CHARGER_WA_PING) {
-			max77854_hv_muic_afc_control_ping(phv, false);
+			max77865_hv_muic_afc_control_ping(phv, false);
 		} else {
-			max77854_hv_muic_afc_control_ping(phv, true);
+			max77865_hv_muic_afc_control_ping(phv, true);
 			noti = false;
 		}
 		break;
 	case FUNC_PREPARE_DUPLI_TO_AFC_9V:
-		max77854_hv_muic_afc_control_ping(phv, false);
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_afc_control_ping(phv, false);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
 #if defined(CONFIG_MUIC_HV_12V)
 	case FUNC_PREPARE_DUPLI_TO_AFC_12V:
-		max77854_hv_muic_afc_control_ping(phv, false);
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_afc_control_ping(phv, false);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
 #endif
 	case FUNC_PREPARE_DUPLI_TO_QC_PREPARE:
-		max77854_hv_muic_qc_charger(phv);
-		max77854_hv_muic_after_qc_prepare(phv);
+		max77865_hv_muic_qc_charger(phv);
+		max77865_hv_muic_after_qc_prepare(phv);
 		break;
 	case FUNC_AFC_5V_TO_AFC_5V_DUPLI:
 		/* attached_dev is changed. MPING Missing did not happened
@@ -1368,15 +1325,15 @@ static int max77854_hv_muic_handle_attach
 		cancel_delayed_work(&phv->hv_muic_mping_miss_wa);
 		phv->afc_count++;
 		if (!phv->is_afc_handshaking) {
-			max77854_hv_muic_set_afc_charger_handshaking(phv);
+			max77865_hv_muic_set_afc_charger_handshaking(phv);
 			if (!mping_missed)
 				phv->is_afc_handshaking = true;
 		}
 		if (phv->afc_count > AFC_CHARGER_WA_PING) {
-			max77854_hv_muic_afc_control_ping(phv, false);
-			max77854_hv_muic_adcmode_always_on(phv);
+			max77865_hv_muic_afc_control_ping(phv, false);
+			max77865_hv_muic_adcmode_always_on(phv);
 		} else {
-			max77854_hv_muic_afc_control_ping(phv, true);
+			max77865_hv_muic_afc_control_ping(phv, true);
 			noti = false;
 		}
 		break;
@@ -1395,8 +1352,8 @@ static int max77854_hv_muic_handle_attach
 		pr_info("%s:%s cancel_delayed_work(dev %d), Mping missing wa\n",
 			MUIC_HV_DEV_NAME, __func__, new_dev);
 		cancel_delayed_work(&phv->hv_muic_mping_miss_wa);
-		max77854_hv_muic_afc_control_ping(phv, false);
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_afc_control_ping(phv, false);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
 #if defined(CONFIG_MUIC_HV_12V)
 	case FUNC_AFC_5V_TO_AFC_12V:
@@ -1405,8 +1362,8 @@ static int max77854_hv_muic_handle_attach
 		pr_info("%s:%s cancel_delayed_work(dev %d), Mping missing wa\n",
 			MUIC_HV_DEV_NAME, __func__, new_dev);
 		cancel_delayed_work(&phv->hv_muic_mping_miss_wa);
-		max77854_hv_muic_afc_control_ping(phv, false);
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_afc_control_ping(phv, false);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
 #endif
 	case FUNC_AFC_5V_TO_QC_PREPARE:
@@ -1415,29 +1372,29 @@ static int max77854_hv_muic_handle_attach
 		pr_info("%s:%s cancel_delayed_work(dev %d), Mping missing wa\n",
 			MUIC_HV_DEV_NAME, __func__, new_dev);
 		cancel_delayed_work(&phv->hv_muic_mping_miss_wa);
-		max77854_hv_muic_qc_charger(phv);
-		max77854_hv_muic_after_qc_prepare(phv);
+		max77865_hv_muic_qc_charger(phv);
+		max77865_hv_muic_after_qc_prepare(phv);
 		break;
 	case FUNC_AFC_5V_DUPLI_TO_AFC_5V_DUPLI:
 		phv->afc_count++;
 		if (!phv->is_afc_handshaking) {
-			max77854_hv_muic_set_afc_charger_handshaking(phv);
+			max77865_hv_muic_set_afc_charger_handshaking(phv);
 			if (!mping_missed)
 				phv->is_afc_handshaking = true;
 		}
 		if (phv->afc_count > AFC_CHARGER_WA_PING) {
-			max77854_hv_muic_afc_control_ping(phv, false);
-			max77854_hv_muic_adcmode_always_on(phv);
+			max77865_hv_muic_afc_control_ping(phv, false);
+			max77865_hv_muic_adcmode_always_on(phv);
 		} else {
-			max77854_hv_muic_afc_control_ping(phv, true);
+			max77865_hv_muic_afc_control_ping(phv, true);
 			noti = false;
 		}
 		break;
 	case FUNC_AFC_5V_DUPLI_TO_AFC_ERR_V:
 		if (phv->afc_count > AFC_CHARGER_WA_PING) {
-			max77854_hv_muic_afc_control_ping(phv, false);
+			max77865_hv_muic_afc_control_ping(phv, false);
 		} else {
-			max77854_hv_muic_afc_control_ping(phv, true);
+			max77865_hv_muic_afc_control_ping(phv, true);
 			noti = false;
 		}
 		break;
@@ -1445,209 +1402,200 @@ static int max77854_hv_muic_handle_attach
 	case FUNC_AFC_5V_DUPLI_TO_AFC_12V:
 #endif		
 	case FUNC_AFC_5V_DUPLI_TO_AFC_9V:
-		max77854_hv_muic_afc_control_ping(phv, false);
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_afc_control_ping(phv, false);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
 	case FUNC_AFC_5V_DUPLI_TO_QC_PREPARE:
-		max77854_hv_muic_qc_charger(phv);
-		max77854_hv_muic_after_qc_prepare(phv);
+		max77865_hv_muic_qc_charger(phv);
+		max77865_hv_muic_after_qc_prepare(phv);
 		break;
 	case FUNC_AFC_ERR_V_TO_AFC_ERR_V_DUPLI:
 		phv->afc_count++;
 		if (phv->afc_count > AFC_CHARGER_WA_PING) {
-			max77854_hv_muic_afc_control_ping(phv, false);
-			max77854_hv_muic_adcmode_always_on(phv);
+			max77865_hv_muic_afc_control_ping(phv, false);
+			max77865_hv_muic_adcmode_always_on(phv);
 		} else {
-			max77854_hv_muic_afc_control_ping(phv, true);
+			max77865_hv_muic_afc_control_ping(phv, true);
 			noti = false;
 		}
 		break;
 	case FUNC_AFC_ERR_V_TO_AFC_5V:
-		max77854_hv_muic_afc_control_ping(phv, false);
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_afc_control_ping(phv, false);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
 	case FUNC_AFC_ERR_V_TO_AFC_9V:
-		max77854_hv_muic_afc_control_ping(phv, false);
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_afc_control_ping(phv, false);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
 #if defined(CONFIG_MUIC_HV_12V)
 	case FUNC_AFC_ERR_V_TO_AFC_12V:
-		max77854_hv_muic_afc_control_ping(phv, false);
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_afc_control_ping(phv, false);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
 #endif
 	case FUNC_AFC_ERR_V_TO_QC_PREPARE:
-		max77854_hv_muic_qc_charger(phv);
-		max77854_hv_muic_after_qc_prepare(phv);
+		max77865_hv_muic_qc_charger(phv);
+		max77865_hv_muic_after_qc_prepare(phv);
 		break;
 	case FUNC_AFC_ERR_V_DUPLI_TO_AFC_ERR_V_DUPLI:
 		phv->afc_count++;
 		if (phv->afc_count > AFC_CHARGER_WA_PING) {
-			max77854_hv_muic_afc_control_ping(phv, false);
-			max77854_hv_muic_adcmode_always_on(phv);
+			max77865_hv_muic_afc_control_ping(phv, false);
+			max77865_hv_muic_adcmode_always_on(phv);
 		} else {
-			max77854_hv_muic_afc_control_ping(phv, true);
+			max77865_hv_muic_afc_control_ping(phv, true);
 			noti = false;
 		}
 		break;
 	case FUNC_AFC_ERR_V_DUPLI_TO_AFC_5V:
-		max77854_hv_muic_afc_control_ping(phv, false);
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_afc_control_ping(phv, false);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
 	case FUNC_AFC_ERR_V_DUPLI_TO_AFC_9V:
-		max77854_hv_muic_afc_control_ping(phv, false);
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_afc_control_ping(phv, false);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
 #if defined(CONFIG_MUIC_HV_12V)
 	case FUNC_AFC_ERR_V_DUPLI_TO_AFC_12V:
-		max77854_hv_muic_afc_control_ping(phv, false);
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_afc_control_ping(phv, false);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
 #endif
 	case FUNC_AFC_ERR_V_DUPLI_TO_QC_PREPARE:
-		max77854_hv_muic_qc_charger(phv);
-		max77854_hv_muic_after_qc_prepare(phv);
+		max77865_hv_muic_qc_charger(phv);
+		max77865_hv_muic_after_qc_prepare(phv);
 		break;
 	case FUNC_AFC_9V_TO_AFC_9V_DUPLI:
 		phv->afc_count++;
 		if (phv->afc_count > AFC_CHARGER_WA_PING) {
-			max77854_hv_muic_afc_control_ping(phv, false);
-			max77854_hv_muic_adcmode_always_on(phv);
+			max77865_hv_muic_afc_control_ping(phv, false);
+			max77865_hv_muic_adcmode_always_on(phv);
 		} else {
-			max77854_hv_muic_afc_control_ping(phv, true);
+			max77865_hv_muic_afc_control_ping(phv, true);
 			noti = false;
 		}
 		break;
 	case FUNC_AFC_9V_TO_AFC_ERR_V:
 		if (phv->afc_count > AFC_CHARGER_WA_PING) {
-			max77854_hv_muic_afc_control_ping(phv, false);
+			max77865_hv_muic_afc_control_ping(phv, false);
 		} else {
-			max77854_hv_muic_afc_control_ping(phv, true);
+			max77865_hv_muic_afc_control_ping(phv, true);
 			noti = false;
 		}
 		break;
 	case FUNC_AFC_9V_TO_AFC_5V:
-		max77854_hv_muic_afc_control_ping(phv, false);
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_afc_control_ping(phv, false);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
 	case FUNC_AFC_9V_TO_QC_PREPARE:
-		max77854_hv_muic_qc_charger(phv);
-		max77854_hv_muic_after_qc_prepare(phv);
+		max77865_hv_muic_qc_charger(phv);
+		max77865_hv_muic_after_qc_prepare(phv);
 		break;
 	case FUNC_AFC_9V_DUPLI_TO_AFC_ERR_V:
 		if (phv->afc_count > AFC_CHARGER_WA_PING) {
-			max77854_hv_muic_afc_control_ping(phv, false);
+			max77865_hv_muic_afc_control_ping(phv, false);
 		} else {
-			max77854_hv_muic_afc_control_ping(phv, true);
+			max77865_hv_muic_afc_control_ping(phv, true);
 			noti = false;
 		}
 		break;
 	case FUNC_AFC_9V_DUPLI_TO_AFC_5V:
-		max77854_hv_muic_afc_control_ping(phv, false);
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_afc_control_ping(phv, false);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
 	case FUNC_AFC_9V_DUPLI_TO_AFC_9V_DUPLI:
 		phv->afc_count++;
 		if (phv->afc_count > AFC_CHARGER_WA_PING) {
-			max77854_hv_muic_afc_control_ping(phv, false);
-			max77854_hv_muic_adcmode_always_on(phv);
+			max77865_hv_muic_afc_control_ping(phv, false);
+			max77865_hv_muic_adcmode_always_on(phv);
 		} else {
-			max77854_hv_muic_afc_control_ping(phv, true);
+			max77865_hv_muic_afc_control_ping(phv, true);
 			noti = false;
 		}
 		break;
 	case FUNC_AFC_9V_DUPLI_TO_QC_PREPARE:
-		max77854_hv_muic_qc_charger(phv);
-		max77854_hv_muic_after_qc_prepare(phv);
+		max77865_hv_muic_qc_charger(phv);
+		max77865_hv_muic_after_qc_prepare(phv);
 		break;
 #if defined(CONFIG_MUIC_HV_12V)
 	case FUNC_AFC_12V_TO_AFC_12V_DUPLI:
 		phv->afc_count++;
 		if (phv->afc_count > AFC_CHARGER_WA_PING) {
-			max77854_hv_muic_afc_control_ping(phv, false);
-			max77854_hv_muic_adcmode_always_on(phv);
+			max77865_hv_muic_afc_control_ping(phv, false);
+			max77865_hv_muic_adcmode_always_on(phv);
 		} else {
-			max77854_hv_muic_afc_control_ping(phv, true);
+			max77865_hv_muic_afc_control_ping(phv, true);
 			noti = false;
 		}
 		break;
 	case FUNC_AFC_12V_TO_AFC_ERR_V:
 		if (phv->afc_count > AFC_CHARGER_WA_PING) {
-			max77854_hv_muic_afc_control_ping(phv, false);
+			max77865_hv_muic_afc_control_ping(phv, false);
 		} else {
-			max77854_hv_muic_afc_control_ping(phv, true);
+			max77865_hv_muic_afc_control_ping(phv, true);
 			noti = false;
 		}
 		break;
 	case FUNC_AFC_12V_TO_AFC_5V:
-		max77854_hv_muic_afc_control_ping(phv, false);
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_afc_control_ping(phv, false);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
 	case FUNC_AFC_12V_TO_AFC_9V:
-		max77854_hv_muic_afc_control_ping(phv, false);
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_afc_control_ping(phv, false);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
 	case FUNC_AFC_12V_TO_QC_PREPARE:
-		max77854_hv_muic_qc_charger(phv);
-		max77854_hv_muic_after_qc_prepare(phv);
+		max77865_hv_muic_qc_charger(phv);
+		max77865_hv_muic_after_qc_prepare(phv);
 		break;
 	case FUNC_AFC_12V_DUPLI_TO_AFC_ERR_V:
 		if (phv->afc_count > AFC_CHARGER_WA_PING) {
-			max77854_hv_muic_afc_control_ping(phv, false);
+			max77865_hv_muic_afc_control_ping(phv, false);
 		} else {
-			max77854_hv_muic_afc_control_ping(phv, true);
+			max77865_hv_muic_afc_control_ping(phv, true);
 			noti = false;
 		}
 		break;
 	case FUNC_AFC_12V_DUPLI_TO_AFC_5V:
-		max77854_hv_muic_afc_control_ping(phv, false);
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_afc_control_ping(phv, false);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
 	case FUNC_AFC_12V_DUPLI_TO_AFC_9V:
-		max77854_hv_muic_afc_control_ping(phv, false);
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_afc_control_ping(phv, false);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
 	case FUNC_AFC_12V_DUPLI_TO_AFC_12V_DUPLI:
 		phv->afc_count++;
 		if (phv->afc_count > AFC_CHARGER_WA_PING) {
-			max77854_hv_muic_afc_control_ping(phv, false);
-			max77854_hv_muic_adcmode_always_on(phv);
+			max77865_hv_muic_afc_control_ping(phv, false);
+			max77865_hv_muic_adcmode_always_on(phv);
 		} else {
-			max77854_hv_muic_afc_control_ping(phv, true);
+			max77865_hv_muic_afc_control_ping(phv, true);
 			noti = false;
 		}
 		break;
 	case FUNC_AFC_12V_DUPLI_TO_QC_PREPARE:
-		max77854_hv_muic_qc_charger(phv);
-		max77854_hv_muic_after_qc_prepare(phv);
+		max77865_hv_muic_qc_charger(phv);
+		max77865_hv_muic_after_qc_prepare(phv);
 		break;
 #endif
 	case FUNC_QC_PREPARE_TO_QC_5V:
 		if (phv->is_qc_vb_settle == true)
-			max77854_hv_muic_adcmode_oneshot(phv);
+			max77865_hv_muic_adcmode_oneshot(phv);
 		else
 			noti = false;
 		break;
 	case FUNC_QC_PREPARE_TO_QC_9V:
 		phv->is_qc_vb_settle = true;
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
 	case FUNC_QC_5V_TO_QC_9V:
 		phv->is_qc_vb_settle = true;
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
 	case FUNC_QC_9V_TO_QC_5V:
-		max77854_hv_muic_adcmode_oneshot(phv);
+		max77865_hv_muic_adcmode_oneshot(phv);
 		break;
-#if defined(CONFIG_MUIC_HV_SUPPORT_POGO_DOCK)
-	case FUNC_POGO_DOCK_TO_POGO_DOCK_5V:
-		pr_info("%s:%s keep adcmode continuous\n", MUIC_HV_DEV_NAME, __func__);
-		break;
-	case FUNC_POGO_DOCK_TO_POGO_DOCK_9V:
-	case FUNC_POGO_DOCK_5V_TO_POGO_DOCK_9V:
-		max77854_hv_muic_adcmode_oneshot(phv);
-		break;
-#endif
 	default:
 		pr_warn("%s:%s undefinded hv function num(%d)\n", MUIC_HV_DEV_NAME,
 					__func__, new_afc_data->function_num);
@@ -1724,17 +1672,17 @@ out:
 	return ret;
 }
 
-static bool muic_check_hvcontrol1_dpdnvden
+static bool muic_check_bccontrol2_dpdnman
 			(const muic_afc_data_t *tmp_afc_data, u8 dpdnvden)
 {
 	bool ret = false;
 
-	if (tmp_afc_data->hvcontrol1_dpdnvden == dpdnvden) {
+	if (tmp_afc_data->bccontrol2_dpdnman == dpdnvden) {
 		ret = true;
 		goto out;
 	}
 
-	if (tmp_afc_data->hvcontrol1_dpdnvden == DPDNVDEN_DONTCARE) {
+	if (tmp_afc_data->bccontrol2_dpdnman == DPDNVDEN_DONTCARE) {
 		ret = true;
 		goto out;
 	}
@@ -1743,24 +1691,24 @@ out:
 	if (debug_en_checklist) {
 		pr_info("%s:%s check_data dev(%d) dpdnvden(0x%x:0x%x) ret(%c)\n",
 				MUIC_HV_DEV_NAME, __func__, tmp_afc_data->new_dev,
-				tmp_afc_data->hvcontrol1_dpdnvden, dpdnvden,
+				tmp_afc_data->bccontrol2_dpdnman, dpdnvden,
 				ret ? 'T' : 'F');
 	}
 
 	return ret;
 }
 
-static bool muic_check_status3_vbadc
+static bool muic_check_gpstatus_vbadc
 			(const muic_afc_data_t *tmp_afc_data, u8 vbadc)
 {
 	bool ret = false;
 
-	if (tmp_afc_data->status3_vbadc == vbadc) {
+	if (tmp_afc_data->gpstatus_vbadc == vbadc) {
 		ret = true;
 		goto out;
 	}
 
-	if (tmp_afc_data->status3_vbadc == VBADC_AFC_5V) {
+	if (tmp_afc_data->gpstatus_vbadc == VBADC_AFC_5V) {
 		switch (vbadc) {
 		case VBADC_4V_5V:
 		case VBADC_5V_6V:
@@ -1772,7 +1720,7 @@ static bool muic_check_status3_vbadc
 		}
 	}
 
-	if (tmp_afc_data->status3_vbadc == VBADC_AFC_9V) {
+	if (tmp_afc_data->gpstatus_vbadc == VBADC_AFC_9V) {
 		switch (vbadc) {
 		case VBADC_7V_8V:
 		case VBADC_8V_9V:
@@ -1785,9 +1733,10 @@ static bool muic_check_status3_vbadc
 	}
 
 #if defined(CONFIG_MUIC_HV_12V)
-	if (tmp_afc_data->status3_vbadc == VBADC_AFC_12V) {
+	if (tmp_afc_data->gpstatus_vbadc == VBADC_AFC_12V) {
 		switch (vbadc) {
-		case VBADC_10V_12V:
+		case VBADC_10V_11V:
+		case VBADC_11V_12V:
 		case VBADC_12V_13V:
 			ret = true;
 			goto out;
@@ -1797,20 +1746,14 @@ static bool muic_check_status3_vbadc
 	}
 #endif
 
-	if (tmp_afc_data->status3_vbadc == VBADC_AFC_ERR_V_NOT_0) {
+	if (tmp_afc_data->gpstatus_vbadc == VBADC_AFC_ERR_V_NOT_0) {
 		switch (vbadc) {
-		case VBADC_6V_7V:
-		case VBADC_7V_8V:
 #if !defined(CONFIG_MUIC_HV_12V)
-		case VBADC_10V_12V:
+		case VBADC_10V_11V:
+		case VBADC_11V_12V:
 		case VBADC_12V_13V:
 #endif
-		case VBADC_13V_14V:
-		case VBADC_14V_15V:
-		case VBADC_15V_16V:
-		case VBADC_16V_17V:
-		case VBADC_17V_18V:
-		case VBADC_18V_19V:
+		case VBADC_13V:
 			ret = true;
 			goto out;
 		default:
@@ -1818,20 +1761,15 @@ static bool muic_check_status3_vbadc
 		}
 	}
 
-	if (tmp_afc_data->status3_vbadc == VBADC_AFC_ERR_V) {
+	if (tmp_afc_data->gpstatus_vbadc == VBADC_AFC_ERR_V) {
 		switch (vbadc) {
 		case VBADC_VBDET:
 #if !defined(CONFIG_MUIC_HV_12V)
-		case VBADC_10V_12V:
+		case VBADC_10V_11V:
+		case VBADC_11V_12V:
 		case VBADC_12V_13V:
 #endif
-		case VBADC_13V_14V:
-		case VBADC_14V_15V:
-		case VBADC_15V_16V:
-		case VBADC_16V_17V:
-		case VBADC_17V_18V:
-		case VBADC_18V_19V:
-		case VBADC_19V:
+		case VBADC_13V:
 			ret = true;
 			goto out;
 		default:
@@ -1839,7 +1777,7 @@ static bool muic_check_status3_vbadc
 		}
 	}
 
-	if (tmp_afc_data->status3_vbadc == VBADC_QC_5V) {
+	if (tmp_afc_data->gpstatus_vbadc == VBADC_QC_5V) {
 		switch (vbadc) {
 		case VBADC_4V_5V:
 		case VBADC_5V_6V:
@@ -1851,7 +1789,7 @@ static bool muic_check_status3_vbadc
 		}
 	}
 
-	if (tmp_afc_data->status3_vbadc == VBADC_QC_9V) {
+	if (tmp_afc_data->gpstatus_vbadc == VBADC_QC_9V) {
 		switch (vbadc) {
 		case VBADC_6V_7V:
 		case VBADC_7V_8V:
@@ -1864,7 +1802,7 @@ static bool muic_check_status3_vbadc
 		}
 	}
 
-	if (tmp_afc_data->status3_vbadc == VBADC_ANY) {
+	if (tmp_afc_data->gpstatus_vbadc == VBADC_ANY) {
 		switch (vbadc) {
 		case VBADC_4V_5V:
 		case VBADC_5V_6V:
@@ -1872,15 +1810,10 @@ static bool muic_check_status3_vbadc
 		case VBADC_7V_8V:
 		case VBADC_8V_9V:
 		case VBADC_9V_10V:
-		case VBADC_10V_12V:
+		case VBADC_10V_11V:
+		case VBADC_11V_12V:
 		case VBADC_12V_13V:
-		case VBADC_13V_14V:
-		case VBADC_14V_15V:
-		case VBADC_15V_16V:
-		case VBADC_16V_17V:
-		case VBADC_17V_18V:
-		case VBADC_18V_19V:
-		case VBADC_19V:
+		case VBADC_13V:
 			ret = true;
 			goto out;
 		default:
@@ -1888,7 +1821,7 @@ static bool muic_check_status3_vbadc
 		}
 	}
 
-	if (tmp_afc_data->status3_vbadc == VBADC_DONTCARE) {
+	if (tmp_afc_data->gpstatus_vbadc == VBADC_DONTCARE) {
 		ret = true;
 		goto out;
 	}
@@ -1897,23 +1830,23 @@ out:
 	if (debug_en_checklist) {
 		pr_info("%s:%s check_data dev(%d) vbadc(0x%x:0x%x) ret(%c)\n",
 				MUIC_HV_DEV_NAME, __func__, tmp_afc_data->new_dev,
-				tmp_afc_data->status3_vbadc, vbadc, ret ? 'T' : 'F');
+				tmp_afc_data->gpstatus_vbadc, vbadc, ret ? 'T' : 'F');
 	}
 
 	return ret;
 }
 
-static bool muic_check_status3_vdnmon
+static bool muic_check_bcstatus2_vdnmon
 			(const muic_afc_data_t *tmp_afc_data, u8 vdnmon)
 {
 	bool ret = false;
 
-	if (tmp_afc_data->status3_vdnmon == vdnmon) {
+	if (tmp_afc_data->bcstatus2_vdnmon == vdnmon) {
 		ret = true;
 		goto out;
 	}
 
-	if (tmp_afc_data->status3_vdnmon == VDNMON_DONTCARE) {
+	if (tmp_afc_data->bcstatus2_vdnmon == VDNMON_DONTCARE) {
 		ret = true;
 		goto out;
 	}
@@ -1922,12 +1855,13 @@ out:
 	if (debug_en_checklist) {
 		pr_info("%s:%s check_data dev(%d) vdnmon(0x%x:0x%x) ret(%c)\n",
 				MUIC_HV_DEV_NAME, __func__, tmp_afc_data->new_dev,
-				tmp_afc_data->status3_vdnmon, vdnmon, ret ? 'T' : 'F');
+				tmp_afc_data->bcstatus2_vdnmon, vdnmon, ret ? 'T' : 'F');
 	}
 
 	return ret;
 }
 
+#if 0
 /*
  * Keep charging for the non-AFC chargers
  * instead of sending a detach noti.
@@ -1945,39 +1879,36 @@ static bool muic_hv_is_nonafc_ta(u8 chgtyp)
 
 	return false;
 }
+#endif
 
 static bool muic_check_dev_ta(struct hv_data *phv)
 {
 	u8 status1 = phv->vps.status1;
-	u8 status2 = phv->vps.status2;
-	u8 adc, vbvolt, chgdetrun, chgtyp;
+	u8 status3 = phv->vps.status3;
+	u8 uid, vbvolt, chgdetrun, chgtyp;
 
-	adc = status1 & STATUS1_ADC_MASK;
-	vbvolt = status2 & STATUS2_VBVOLT_MASK;
-	chgdetrun = status2 & STATUS2_CHGDETRUN_MASK;
-	chgtyp = status2 & STATUS2_CHGTYP_MASK;
+	uid = status3 & GP_STATUS_UID_MASK;
+	vbvolt = status1 & BC_STATUS1_VBVOLT_MASK;
+	chgdetrun = status1 & BC_STATUS1_CHGDETRUN_MASK;
+	chgtyp = status1 & BC_STATUS1_CHGTYP_MASK;
 
-	if (adc != ADC_OPEN) {
-		max77854_muic_set_afc_ready(phv, false);
+	if (uid != UID_OPEN) {
+		max77865_muic_set_afc_ready(phv, false);
 		return false;
 	}
 
-#if defined(CONFIG_MUIC_HV_SUPPORT_POGO_DOCK)
-	if (vbvolt > 0 && gpio_is_valid(phv->pmuic->dock_int_ap) 
-			&& gpio_get_value(phv->pmuic->dock_int_ap) == 0)
-		return true;
-#endif
-
+#if 0 // CIS - Need check
 	if (muic_hv_is_nonafc_ta(chgtyp)) {
-		max77854_muic_set_afc_ready(phv, false);
+		max77865_muic_set_afc_ready(phv, false);
 
 		pr_info("%s:%s non AFC Charger.(chgtyp=%d) \n",
 			MUIC_HV_DEV_NAME, __func__, chgtyp);
 		return false;
 	}
+#endif
 
 	if (vbvolt == VB_LOW || chgdetrun == CHGDETRUN_TRUE || chgtyp != CHGTYP_DEDICATED_CHARGER) {
-		max77854_muic_set_afc_ready(phv, false);
+		max77865_muic_set_afc_ready(phv, false);
 #if defined(CONFIG_MUIC_NOTIFIER)
 		muic_notifier_detach_attached_dev(phv->attached_dev);
 #endif
@@ -1995,7 +1926,7 @@ static bool muic_check_dev_ta(struct hv_data *phv)
 	return true;
 }
 
-static void max77854_hv_muic_detect_dev(struct hv_data *phv, int irq)
+void max77865_hv_muic_detect_dev(struct hv_data *phv, int irq)
 {
 	struct i2c_client *i2c = phv->i2c;
 	const muic_afc_data_t *tmp_afc_data = afc_condition_checklist[phv->attached_dev];
@@ -2005,7 +1936,7 @@ static void max77854_hv_muic_detect_dev(struct hv_data *phv, int irq)
 	int i;
 	u8 status[3];
 	u8 hvcontrol[2];
-	u8 vdnmon, dpdnvden, mpnack, vbadc;
+	u8 vdnmon, dpdnvden, vbadc;//mpnack
 	bool flag_next = true;
 	bool muic_dev_ta = false;
 
@@ -2016,13 +1947,13 @@ static void max77854_hv_muic_detect_dev(struct hv_data *phv, int irq)
 		return;
 	}
 
-	ret = max77854_bulk_read(phv->i2c, MAX77854_MUIC_REG_STATUS1, 3, status);
+	ret = max77865_bulk_read(phv->i2c, MAX77865_MUIC_REG_STATUS1_BC, 3, status);
 	if (ret) {
 		pr_err("%s:%s fail to read muic reg(%d)\n", MUIC_DEV_NAME, __func__, ret);
 		return;
 	}
 
-	pr_info("%s:%s STATUS1:0x%02x, 2:0x%02x, 3:0x%02x\n", MUIC_DEV_NAME, __func__,
+	pr_info("%s:%s BC STATUS1:0x%02x, 2:0x%02x, GP STATUS:0x%02x\n", MUIC_DEV_NAME, __func__,
 					status[0], status[1], status[2]);
 
 	/* attached status */
@@ -2038,28 +1969,29 @@ static void max77854_hv_muic_detect_dev(struct hv_data *phv, int irq)
 	}
 
 	/* attached status */
-	mpnack = status[2] & STATUS3_MPNACK_MASK;
-	vdnmon = status[2] & STATUS3_VDNMON_MASK;
-	vbadc = status[2] & STATUS3_VBADC_MASK;
+//	mpnack = status[2] & STATUS3_MPNACK_MASK;
+	vdnmon = status[1] & BC_STATUS2_DNVDATREF_MASK;
+	vbadc = status[2] & GP_STATUS_VBADC_MASK;
 
-	ret = max77854_bulk_read(i2c, MAX77854_MUIC_REG_HVCONTROL1, 2, hvcontrol);
+	phv->vps.bccontrol2 = muic_i2c_read_byte(i2c, MAX77865_MUIC_REG_CONTROL2_BC);
+	ret = max77865_bulk_read(i2c, MAX77865_MUIC_REG_HVCONTROL1, 2, hvcontrol);
 	if (ret) {
 		pr_err("%s:%s fail to read muic reg(%d)\n", MUIC_HV_DEV_NAME,
 				__func__, ret);
 		return;
 	}
 
-	pr_info("%s:%s HVCONTROL1:0x%02x, 2:0x%02x\n", MUIC_HV_DEV_NAME, __func__,
-			hvcontrol[0], hvcontrol[1]);
+	pr_info("%s:%s BCCONTROL2: 0x%02x, HVCONTROL1:0x%02x, 2:0x%02x\n",
+			MUIC_HV_DEV_NAME, __func__, phv->vps.bccontrol2, hvcontrol[0], hvcontrol[1]);
 
 	/* attached - control */
 	phv->vps.hvcontrol[0] = hvcontrol[0];
 	phv->vps.hvcontrol[1] = hvcontrol[1];
 
-	dpdnvden = hvcontrol[0] & HVCONTROL1_DPDNVDEN_MASK;
+	dpdnvden = phv->vps.bccontrol2 & BC_CONTROL2_DPDNMAN_MASK;
 
-	pr_info("%s:%s vdnmon:0x%x mpnack:0x%x vbadc:0x%x dpdnvden:0x%x\n",
-		MUIC_HV_DEV_NAME, __func__, vdnmon, mpnack, vbadc, dpdnvden);
+	pr_info("%s:%s vdnmon:0x%x vbadc:0x%x dpdnvden:0x%x\n",
+		MUIC_HV_DEV_NAME, __func__, vdnmon, vbadc, dpdnvden);
 
 	for (i = 0; i < ATTACHED_DEV_NUM; i++, tmp_afc_data = tmp_afc_data->next) {
 
@@ -2075,13 +2007,13 @@ static void max77854_hv_muic_detect_dev(struct hv_data *phv, int irq)
 		if (!(muic_check_hv_irq(phv, tmp_afc_data, irq)))
 			continue;
 
-		if (!(muic_check_hvcontrol1_dpdnvden(tmp_afc_data, dpdnvden)))
+		if (!(muic_check_bccontrol2_dpdnman(tmp_afc_data, dpdnvden)))
 			continue;
 
-		if (!(muic_check_status3_vbadc(tmp_afc_data, vbadc)))
+		if (!(muic_check_gpstatus_vbadc(tmp_afc_data, vbadc)))
 			continue;
 
-		if(!(muic_check_status3_vdnmon(tmp_afc_data, vdnmon)))
+		if(!(muic_check_bcstatus2_vdnmon(tmp_afc_data, vdnmon)))
 			continue;
 
 		pr_info("%s:%s checklist match found at i(%d), %s(%d)\n",
@@ -2097,14 +2029,14 @@ static void max77854_hv_muic_detect_dev(struct hv_data *phv, int irq)
 		pr_info("%s:%s AFC ATTACHED\n", MUIC_HV_DEV_NAME, __func__);
 		pr_info("%s:%s %d->%d\n", MUIC_HV_DEV_NAME, __func__,
 				phv->attached_dev, tmp_afc_data->new_dev);
-		ret = max77854_hv_muic_handle_attach(phv, tmp_afc_data);
+		ret = max77865_hv_muic_handle_attach(phv, tmp_afc_data);
 		if (ret)
 			pr_err("%s:%s cannot handle attach(%d)\n", MUIC_HV_DEV_NAME,
 				__func__, ret);
 	} else {
 		pr_info("%s:%s AFC MAINTAIN (%d)\n", MUIC_HV_DEV_NAME, __func__,
 				phv->attached_dev);
-		ret = max77854_hv_muic_state_maintain(phv);
+		ret = max77865_hv_muic_state_maintain(phv);
 		if (ret)
 			pr_err("%s:%s cannot maintain state(%d)\n", MUIC_HV_DEV_NAME,
 				__func__, ret);
@@ -2115,31 +2047,37 @@ out:
 	return;
 }
 
-/* TA setting in max77854-muic.c */
-void max77854_muic_prepare_afc_charger(struct hv_data *phv)
+/* TA setting in max77865-muic.c */
+void max77865_muic_prepare_afc_charger(struct hv_data *phv)
 {
 	struct i2c_client *i2c = phv->i2c;
 	int ret;
 
 	pr_info("%s:%s \n", MUIC_DEV_NAME, __func__);
 
-	max77854_hv_muic_adcmode_oneshot(phv);
+	max77865_hv_muic_adcmode_oneshot(phv);
 
 	/* set HVCONTROL1=0x11 */
-	ret = max77854_muic_hv_update_reg(i2c, MAX77854_MUIC_REG_HVCONTROL1,
-			(0x2 << HVCONTROL1_DPVD_SHIFT), HVCONTROL1_DPVD_MASK, true);
+	ret = max77865_muic_hv_update_reg(i2c, MAX77865_MUIC_REG_CONTROL2_BC,
+			(0x1 << BC_CONTROL2_DPDRV_SHIFT), BC_CONTROL2_DPDRV_MASK, true);
 	if (ret < 0 )
 		goto err_write;
 
-	ret = max77854_muic_hv_update_reg(i2c, MAX77854_MUIC_REG_HVCONTROL1,
-			(MAX77854_ENABLE_BIT << HVCONTROL1_DPDNVDEN_SHIFT),
-			HVCONTROL1_DPDNVDEN_MASK, true);
+	ret = max77865_muic_hv_update_reg(i2c, MAX77865_MUIC_REG_CONTROL2_BC,
+			(MAX77865_ENABLE_BIT << BC_CONTROL2_DNMONEN_SHIFT),
+			BC_CONTROL2_DNMONEN_MASK, true);
+	if (ret < 0)
+		goto err_write;
+
+	ret = max77865_muic_hv_update_reg(i2c, MAX77865_MUIC_REG_CONTROL2_BC,
+			(MAX77865_ENABLE_BIT << BC_CONTROL2_DPDNMAN_SHIFT),
+			BC_CONTROL2_DPDNMAN_MASK, true);
 	if (ret < 0)
 		goto err_write;
 
 	/* Set VBusADCEn = 1 after the time of changing adcmode*/
 
-	max77854_muic_set_afc_ready(phv, true);
+	max77865_muic_set_afc_ready(phv, true);
 
 	return;
 
@@ -2148,8 +2086,8 @@ err_write:
 	return;
 }
 
-/* TA setting in max77854-muic.c */
-bool max77854_muic_check_change_dev_afc_charger
+/* TA setting in max77865-muic.c */
+bool max77865_muic_check_change_dev_afc_charger
 		(struct hv_data *phv, muic_attached_dev_t new_dev)
 {
 	bool ret = true;
@@ -2176,68 +2114,55 @@ bool max77854_muic_check_change_dev_afc_charger
 	return ret;
 }
 
-static void max77854_hv_muic_detect_after_charger_init(struct work_struct *work)
+static void max77865_hv_muic_detect_after_charger_init(struct work_struct *work)
 {
 	struct afc_init_data_s *init_data =
 	    container_of(work, struct afc_init_data_s, muic_afc_init_work);
 	struct hv_data *phv = init_data->phv;
 	int ret;
-	u8 status3 =0;
+	u8 bcstatus2 = 0, gpstatus = 0;
 
 	pr_info("%s:%s\n", MUIC_DEV_NAME, __func__);
 
 	mutex_lock(phv->pmutex);
 
 	/* check vdnmon status value */
-	status3 = muic_i2c_read_byte(phv->i2c, MAX77854_MUIC_REG_STATUS3);
-	if (status3 < 0 ) {
+	bcstatus2 = muic_i2c_read_byte(phv->i2c, MAX77865_MUIC_REG_STATUS2_BC);
+	gpstatus = muic_i2c_read_byte(phv->i2c, MAX77865_MUIC_REG_STATUS_GP);
+	if ((bcstatus2 < 0 ) || (gpstatus < 0)) {
 		pr_err("%s:%s fail to read muic reg(%d)\n", MUIC_HV_DEV_NAME,
 				__func__, ret);
 		return;
 	}
-	pr_info("%s:%s STATUS3:0x%02x\n", MUIC_HV_DEV_NAME, __func__, status3);
+	pr_info("%s:%s BC STATUS2:0x%02x, GP STATUS:0x%02x\n",
+					MUIC_HV_DEV_NAME, __func__, bcstatus2, gpstatus);
 
 	if (phv->is_afc_muic_ready) {
 		if (phv->is_afc_muic_prepare)
-			max77854_hv_muic_detect_dev(phv, phv->irq_vdnmon);
-#if defined(CONFIG_MUIC_HV_SUPPORT_POGO_DOCK)
-		else if (gpio_is_valid(phv->pmuic->dock_int_ap) && 
-				gpio_get_value(phv->pmuic->dock_int_ap) == 0)
-			max77854_hv_muic_detect_dev(phv, phv->irq_vbadc);
-#endif
+			max77865_hv_muic_detect_dev(phv, phv->irq_vdnmon);
 		else
-			max77854_hv_muic_detect_dev(phv, -1);
+			max77865_hv_muic_detect_dev(phv, -1);
 	}
 
 	mutex_unlock(phv->pmutex);
 }
 
-#if defined(CONFIG_MUIC_HV_SUPPORT_POGO_DOCK)
-void max77854_muic_prepare_afc_pogo_dock(struct hv_data *phv)
-{
-	pr_info("%s:%s \n", MUIC_DEV_NAME, __func__);
-
-	max77854_hv_muic_adcmode_always_on(phv);
-	max77854_muic_set_afc_ready(phv, true);
-}
-#endif
-
 static int is_hv_cable(muic_data_t *pmuic)
 {
 	switch (pmuic->attached_dev) {
-	case ATTACHED_DEV_AFC_CHARGER_PREPARE_MUIC:
-	case ATTACHED_DEV_AFC_CHARGER_PREPARE_DUPLI_MUIC:
-	case ATTACHED_DEV_AFC_CHARGER_5V_MUIC:
-	case ATTACHED_DEV_AFC_CHARGER_5V_DUPLI_MUIC:
-	case ATTACHED_DEV_AFC_CHARGER_9V_MUIC:
-	case ATTACHED_DEV_AFC_CHARGER_9V_DUPLI_MUIC:
-	case ATTACHED_DEV_AFC_CHARGER_ERR_V_MUIC:
-	case ATTACHED_DEV_AFC_CHARGER_ERR_V_DUPLI_MUIC:
-	case ATTACHED_DEV_QC_CHARGER_5V_MUIC:
-	case ATTACHED_DEV_QC_CHARGER_9V_MUIC:
-		return 1;
-	default:
-		return 0;
+		case ATTACHED_DEV_AFC_CHARGER_PREPARE_MUIC:
+		case ATTACHED_DEV_AFC_CHARGER_PREPARE_DUPLI_MUIC:
+		case ATTACHED_DEV_AFC_CHARGER_5V_MUIC:
+		case ATTACHED_DEV_AFC_CHARGER_5V_DUPLI_MUIC:
+		case ATTACHED_DEV_AFC_CHARGER_9V_MUIC:
+		case ATTACHED_DEV_AFC_CHARGER_9V_DUPLI_MUIC:
+		case ATTACHED_DEV_AFC_CHARGER_ERR_V_MUIC:
+		case ATTACHED_DEV_AFC_CHARGER_ERR_V_DUPLI_MUIC:
+		case ATTACHED_DEV_QC_CHARGER_5V_MUIC:
+		case ATTACHED_DEV_QC_CHARGER_9V_MUIC:
+			return 1;
+		default:
+			return 0;
 	}
 }
 
@@ -2248,25 +2173,27 @@ void hv_muic_change_afc_voltage(muic_data_t *pmuic, int tx_data)
 	int value;
 
 	pr_info("%s: change afc voltage(%x)\n", __func__, tx_data);
-	value = muic_i2c_read_byte(i2c, MAX77854_MUIC_REG_HVTXBYTE);
+	value = muic_i2c_read_byte(i2c, MAX77865_MUIC_REG_HVTXBYTE);
 	if (value == tx_data) {
 		pr_info("%s: same to current voltage %x\n", __func__, value);
 		return;
 	}
 	phv->afc_count = 0;
-	max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVTXBYTE, tx_data);
+	max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_HVTXBYTE, tx_data);
 
 	/* QC Charger */
 	if (phv->attached_dev == ATTACHED_DEV_QC_CHARGER_5V_MUIC ||
 			phv->attached_dev == ATTACHED_DEV_QC_CHARGER_9V_MUIC) {
 		switch (tx_data) {
 			case MUIC_HV_5V:
-				set_adc_scan_mode(phv->pmuic,ADC_SCANMODE_CONTINUOUS);
-				max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVCONTROL1, 0x33);
+//				set_adc_scan_mode(phv->pmuic,ADC_SCANMODE_CONTINUOUS);
+				max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_HVCONTROL1, 0x01);
+				max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_CONTROL2_BC, 0x14);
 				break;
 			case MUIC_HV_9V:
-				set_adc_scan_mode(phv->pmuic,ADC_SCANMODE_CONTINUOUS);
-				max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVCONTROL1, 0x3D);
+//				set_adc_scan_mode(phv->pmuic,ADC_SCANMODE_CONTINUOUS);
+				max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_HVCONTROL1, 0x01);
+				max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_CONTROL2_BC, 0x19);
 				break;
 			default:
 				break;
@@ -2274,8 +2201,8 @@ void hv_muic_change_afc_voltage(muic_data_t *pmuic, int tx_data)
 	}
 	/* AFC Charger */
 	else {
-		max77854_hv_muic_adcmode_always_on(phv);
-		max77854_hv_muic_afc_control_ping(phv, true);
+		max77865_hv_muic_adcmode_always_on(phv);
+		max77865_hv_muic_afc_control_ping(phv, true);
 	}
 }
 
@@ -2294,8 +2221,6 @@ int muic_afc_set_voltage(int vol)
 			hv_muic_change_afc_voltage(pmuic, MUIC_HV_5V);
 		} else if (vol == 9) {
 			hv_muic_change_afc_voltage(pmuic, MUIC_HV_9V);
-		} else if (vol == 12) {
-			hv_muic_change_afc_voltage(pmuic, MUIC_HV_12V);
 		} else {
 			pr_warn("%s:%s invalid value\n", MUIC_DEV_NAME, __func__);
 			return 0;
@@ -2308,12 +2233,11 @@ int muic_afc_set_voltage(int vol)
 	return 1;
 }
 
-void max77854_hv_muic_charger_init(void)
+void max77865_hv_muic_charger_init(void)
 {
 	pr_info("%s:%s\n", MUIC_HV_DEV_NAME, __func__);
 
 	if(afc_init_data.phv) {
-
 		if (afc_init_data.phv->is_charger_ready) {
 			pr_info("%s:%s charger is already ready.\n", MUIC_HV_DEV_NAME, __func__);
 			return;
@@ -2323,17 +2247,10 @@ void max77854_hv_muic_charger_init(void)
 	}
 }
 
-void max77854_hv_muic_rp_init(struct hv_data *phv)
-{
-	pr_info("%s:%s\n", MUIC_HV_DEV_NAME, __func__);
-	max77854_muic_prepare_afc_charger(phv);
-	schedule_work(&afc_init_data.muic_afc_init_work);
-}
-
-static void max77854_hv_muic_check_qc_vb(struct work_struct *work)
+static void max77865_hv_muic_check_qc_vb(struct work_struct *work)
 {
 	struct hv_data *phv = container_of(work, struct hv_data, hv_muic_qc_vb_work.work);
-	u8 status3 =0, vbadc;
+	u8 gpstatus = 0, vbadc;
 
 	if (!phv) {
 		pr_err("%s:%s cannot read phv!\n", MUIC_HV_DEV_NAME, __func__);
@@ -2349,12 +2266,12 @@ static void max77854_hv_muic_check_qc_vb(struct work_struct *work)
 
 	pr_info("%s:%s\n", MUIC_HV_DEV_NAME, __func__);
 
-	status3 = muic_i2c_read_byte(phv->i2c, MAX77854_MUIC_REG_STATUS3);
-	vbadc = status3 & STATUS3_VBADC_MASK;
+	gpstatus = muic_i2c_read_byte(phv->i2c, MAX77865_MUIC_REG_STATUS_GP);
+	vbadc = gpstatus & GP_STATUS_VBADC_MASK;
 
 	if (vbadc == VBADC_4V_5V || vbadc == VBADC_5V_6V) {
 		phv->is_qc_vb_settle = true;
-		max77854_hv_muic_detect_dev(phv, phv->irq_vbadc);
+		max77865_hv_muic_detect_dev(phv, phv->irq_vbadc);
 	}
 
 out:
@@ -2362,7 +2279,7 @@ out:
 	return;
 }
 
-static void max77854_hv_muic_check_mping_miss(struct work_struct *work)
+static void max77865_hv_muic_check_mping_miss(struct work_struct *work)
 {
 	struct hv_data *phv = container_of(work, struct hv_data, hv_muic_mping_miss_wa.work);
 
@@ -2385,17 +2302,17 @@ static void max77854_hv_muic_check_mping_miss(struct work_struct *work)
 	pr_info("%s:%s\n", MUIC_HV_DEV_NAME, __func__);
 
 	/* We make MPING NACK interrupt virtually */
-	max77854_hv_muic_detect_dev(phv, phv->irq_mpnack);
+	max77865_hv_muic_detect_dev(phv, phv->irq_mpnack);
 
 out:
 	mutex_unlock(phv->pmutex);
 	return;
 }
 
-void max77854_hv_muic_init_detect(struct hv_data *phv)
+void max77865_hv_muic_init_detect(struct hv_data *phv)
 {
 	int ret;
-	u8 status3, vdnmon;
+	u8 bcstatus2, vdnmon;
 
 	pr_info("%s:%s\n", MUIC_HV_DEV_NAME, __func__);
 
@@ -2412,15 +2329,15 @@ void max77854_hv_muic_init_detect(struct hv_data *phv)
 		goto out;
 	}
 
-	ret = max77854_read_reg(phv->i2c, MAX77854_MUIC_REG_STATUS3, &status3);
+	ret = max77865_read_reg(phv->i2c, MAX77865_MUIC_REG_STATUS2_BC, &bcstatus2);
 	if (ret) {
 		pr_err("%s:%s fail to read muic reg(%d)\n", MUIC_DEV_NAME, __func__, ret);
 		vdnmon = VDNMON_DONTCARE;
 	} else
-		vdnmon = status3 & STATUS3_VDNMON_MASK;
+		vdnmon = bcstatus2 & BC_STATUS2_DNVDATREF_MASK;
 
 	if (vdnmon == VDNMON_LOW)
-		max77854_hv_muic_detect_dev(phv, phv->irq_vdnmon);
+		max77865_hv_muic_detect_dev(phv, phv->irq_vdnmon);
 	else
 		pr_info("%s:%s vdnmon != LOW(0x%x)\n", MUIC_HV_DEV_NAME, __func__, vdnmon);
 
@@ -2428,122 +2345,24 @@ out:
 	mutex_unlock(phv->pmutex);
 }
 
-static void max77854_hv_muic_init_check_dpdnvden(struct hv_data *phv)
+static void max77865_hv_muic_init_check_dpdnvden(struct hv_data *phv)
 {
-	u8 hvcontrol1 = 0;
+	u8 bccontrol2 = 0;
 	//int ret;
 
 	mutex_lock(phv->pmutex);
 
-	hvcontrol1 = muic_i2c_read_byte(phv->i2c, MAX77854_MUIC_REG_HVCONTROL1);
-	if (hvcontrol1 < 0) {
-		pr_err("%s:%s cannot read HVCONTROL1 reg!\n", MUIC_HV_DEV_NAME, __func__);
+	bccontrol2 = muic_i2c_read_byte(phv->i2c, MAX77865_MUIC_REG_CONTROL2_BC);
+	if (bccontrol2 < 0) {
+		pr_err("%s:%s cannot read BC CONTROL2 reg!\n", MUIC_HV_DEV_NAME, __func__);
 		phv->is_boot_dpdnvden = DPDNVDEN_DONTCARE;
 	} else
-		phv->is_boot_dpdnvden = hvcontrol1 & HVCONTROL1_DPDNVDEN_MASK;
+		phv->is_boot_dpdnvden = bccontrol2 & BC_CONTROL2_DPDNMAN_MASK;
 
 	mutex_unlock(phv->pmutex);
 }
 
-static irqreturn_t max77854_muic_hv_irq(int irq, void *data)
-{
-	struct hv_data *phv = data;
-	pr_info("%s:%s irq:%d\n", MUIC_HV_DEV_NAME, __func__, irq);
-
-	mutex_lock(phv->pmutex);
-	if (phv->is_muic_ready == false)
-		pr_info("%s:%s MUIC is not ready, just return\n", MUIC_HV_DEV_NAME,
-			__func__);
-	else if (phv->is_afc_muic_ready == false)
-		pr_info("%s:%s not ready yet(afc_muic_ready[%c])\n", MUIC_HV_DEV_NAME,
-			 __func__, (phv->is_afc_muic_ready ? 'T' : 'F'));
-	else if (phv->is_charger_ready == false && irq != phv->irq_vdnmon)
-		pr_info("%s:%s not ready yet(charger_ready[%c])\n", MUIC_HV_DEV_NAME,
-			__func__, (phv->is_charger_ready ? 'T' : 'F'));
-#if defined(CONFIG_MUIC_HV_SUPPORT_POGO_DOCK)
-	else if (irq == phv->irq_vbadc && gpio_is_valid(phv->pmuic->dock_int_ap) && 
-			gpio_get_value(phv->pmuic->dock_int_ap) == 0) {
-		pr_info("%s:%s AFC pogo dock(%d)\n", MUIC_HV_DEV_NAME, __func__,
-				gpio_get_value(phv->pmuic->dock_int_ap));
-		max77854_hv_muic_detect_dev(phv, irq);
-	}
-#endif
-	else if (phv->pmuic->pdata->afc_disable)
-		pr_info("%s:%s AFC disable by USER (afc_disable[%c]\n", MUIC_HV_DEV_NAME,
-			__func__, (phv->pmuic->pdata->afc_disable ? 'T' : 'F'));
-#if defined(CONFIG_MUIC_SUPPORT_CCIC)
-	else if (phv->pmuic->afc_water_disable)
-		pr_info("%s:%s AFC disable by WATER (afc_water_disable[%c]\n", MUIC_HV_DEV_NAME,
-			__func__, (phv->pmuic->afc_water_disable ? 'T' : 'F'));
-#endif
-	else
-		max77854_hv_muic_detect_dev(phv, irq);
-
-	mutex_unlock(phv->pmutex);
-
-	return IRQ_HANDLED;
-}
-
-#define REQUEST_HV_IRQ(_irq, _dev_id, _name)				\
-do {									\
-	ret = request_threaded_irq(_irq, NULL, max77854_muic_hv_irq,	\
-				IRQF_NO_SUSPEND, _name, _dev_id);	\
-	if (ret < 0) {							\
-		pr_err("%s:%s Failed to request IRQ #%d: %d\n",		\
-				MUIC_HV_DEV_NAME, __func__, _irq, ret);	\
-		_irq = 0;						\
-	}								\
-} while (0)
-
-static int max77854_afc_muic_irq_init(struct hv_data *phv)
-{
-	int ret = 0;
-
-	pr_info("%s:%s\n", MUIC_HV_DEV_NAME, __func__);
-
-	if (phv->irq_gpio > 0) {
-		int irq_base = phv->irq_gpio;
-
-		/* request AFC MUIC IRQ */
-		phv->irq_vdnmon = irq_base + MAX77854_MUIC_IRQ_INT3_VDNMON;
-		REQUEST_HV_IRQ(phv->irq_vdnmon, phv, "muic-vdnmon");
-		phv->irq_mrxrdy = irq_base + MAX77854_MUIC_IRQ_MRXRDY;
-		REQUEST_HV_IRQ(phv->irq_mrxrdy, phv, "muic-mrxrdy");
-		phv->irq_mpnack = irq_base + MAX77854_MUIC_IRQ_INT3_MPNACK;
-		REQUEST_HV_IRQ(phv->irq_mpnack, phv, "muic-mpnack");
-		phv->irq_vbadc = irq_base + MAX77854_MUIC_IRQ_INT3_VBADC;
-		REQUEST_HV_IRQ(phv->irq_vbadc, phv, "muic-vbadc");
-
-		pr_info("%s:%s vdnmon(%d), mrxrdy(%d), mpnack(%d), vbadc(%d)\n",
-				MUIC_HV_DEV_NAME, __func__,
-				phv->irq_vdnmon, phv->irq_mrxrdy,
-				phv->irq_mpnack, phv->irq_vbadc);
-	}
-
-	return ret;
-}
-
-#define FREE_HV_IRQ(_irq, _dev_id, _name)					\
-do {									\
-	if (_irq) {							\
-		free_irq(_irq, _dev_id);				\
-		pr_info("%s:%s IRQ(%d):%s free done\n", MUIC_HV_DEV_NAME,	\
-				__func__, _irq, _name);			\
-	}								\
-} while (0)
-
-static void max77854_hv_muic_free_irqs(struct hv_data *phv)
-{
-	pr_info("%s:%s\n", MUIC_HV_DEV_NAME, __func__);
-
-	/* free MUIC IRQ */
-	FREE_HV_IRQ(phv->irq_vdnmon, phv, "muic-vdnmon");
-	FREE_HV_IRQ(phv->irq_mrxrdy, phv, "muic-mrxrdy");
-	FREE_HV_IRQ(phv->irq_mpnack, phv, "muic-mpnack");
-	FREE_HV_IRQ(phv->irq_vbadc,  phv, "muic-vbadc");
-}
-
-static void max77854_hv_muic_initialize(struct hv_data *phv)
+static void max77865_hv_muic_initialize(struct hv_data *phv)
 {
 	pr_info("%s:%s\n", MUIC_HV_DEV_NAME, __func__);
 
@@ -2554,13 +2373,13 @@ static void max77854_hv_muic_initialize(struct hv_data *phv)
 	phv->is_boot_dpdnvden = DPDNVDEN_DONTCARE;
 
 	afc_init_data.phv = phv;
-	INIT_WORK(&afc_init_data.muic_afc_init_work, max77854_hv_muic_detect_after_charger_init);
+	INIT_WORK(&afc_init_data.muic_afc_init_work, max77865_hv_muic_detect_after_charger_init);
 
-	INIT_DELAYED_WORK(&phv->hv_muic_qc_vb_work, max77854_hv_muic_check_qc_vb);
-	INIT_DELAYED_WORK(&phv->hv_muic_mping_miss_wa, max77854_hv_muic_check_mping_miss);
+	INIT_DELAYED_WORK(&phv->hv_muic_qc_vb_work, max77865_hv_muic_check_qc_vb);
+	INIT_DELAYED_WORK(&phv->hv_muic_mping_miss_wa, max77865_hv_muic_check_mping_miss);
 }
 	
-void max77854_hv_muic_remove(struct hv_data *phv)
+void max77865_hv_muic_remove(struct hv_data *phv)
 {
 	pr_info("%s:%s\n", MUIC_HV_DEV_NAME, __func__);
 //	if(afc_init_data.muic_afc_init_work != NULL)
@@ -2569,11 +2388,9 @@ void max77854_hv_muic_remove(struct hv_data *phv)
 //		printk("sabin afc_init_data is NULL\n");
 	cancel_delayed_work_sync(&phv->hv_muic_qc_vb_work);
 	cancel_delayed_work(&phv->hv_muic_mping_miss_wa);
-
-	max77854_hv_muic_free_irqs(phv);
 }
 
-void max77854_hv_muic_remove_wo_free_irq(struct hv_data *phv)
+void max77865_hv_muic_remove_wo_free_irq(struct hv_data *phv)
 {
 	pr_info("%s:%s\n", MUIC_HV_DEV_NAME, __func__);
 	cancel_work_sync(&afc_init_data.muic_afc_init_work);
@@ -2604,14 +2421,13 @@ void hv_clear_hvcontrol(struct hv_data *phv)
 {
 	struct i2c_client *i2c = phv->i2c;
 
-	max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVCONTROL1, 0x00);
-	max77854_hv_muic_write_reg(i2c, MAX77854_MUIC_REG_HVCONTROL2, 0x00);
+	max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_CONTROL2_BC, 0x00);
+	max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_HVCONTROL1, 0x00);
+	max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_HVCONTROL2, 0x00);
 }
 
 void hv_configure_AFC(struct hv_data *phv)
 {
-	int ret = 0;
-
 	if (!phv) {
 		pr_err("%s:%s: hv is not ready.\n", __func__, MUIC_HV_DEV_NAME);
 		return;
@@ -2619,20 +2435,13 @@ void hv_configure_AFC(struct hv_data *phv)
 
 	pr_info("%s:%s\n", MUIC_HV_DEV_NAME, __func__);
 
-	ret = max77854_afc_muic_irq_init(phv);
-	if (ret < 0) {
-		pr_err("%s:%s Failed to initialize HV MUIC irq:%d\n", MUIC_DEV_NAME,
-				__func__, ret);
-		max77854_hv_muic_free_irqs(phv);
-	}
-
-	max77854_muic_set_afc_ready(phv, false);
+	max77865_muic_set_afc_ready(phv, false);
 	phv->afc_count = 0;
 
-	max77854_hv_muic_initialize(phv);
+	max77865_hv_muic_initialize(phv);
 
 	/* initial check dpdnvden before cable detection */
-	max77854_hv_muic_init_check_dpdnvden(phv);
+	max77865_hv_muic_init_check_dpdnvden(phv);
 }
 
 void hv_update_status(struct hv_data *phv, int mdev)
@@ -2684,16 +2493,16 @@ bool hv_do_predetach(struct hv_data *phv, int mdev)
 
 	pr_info("%s:%s\n", __func__, MUIC_HV_DEV_NAME);
 
-	noti = max77854_muic_check_change_dev_afc_charger(phv, mdev);
-#if defined(CONFIG_MUIC_SUPPORT_CCIC)
+	noti = max77865_muic_check_change_dev_afc_charger(phv, mdev);
+#if !defined(CONFIG_SEC_FACTORY) && defined(CONFIG_MUIC_SUPPORT_CCIC)
 	if (phv->pmuic->is_ccic_afc_enable == Rp_Abnormal)
 		noti = true;
 #endif
 
         if (noti) {
-                max77854_muic_set_afc_ready(phv, false);
+                max77865_muic_set_afc_ready(phv, false);
                 phv->is_afc_muic_prepare = false;
-                max77854_hv_muic_reset_hvcontrol_reg(phv);
+                max77865_hv_muic_reset_hvcontrol_reg(phv);
                 cancel_delayed_work(&phv->hv_muic_qc_vb_work);
                 cancel_delayed_work(&phv->hv_muic_mping_miss_wa);
         }
@@ -2715,50 +2524,13 @@ void hv_do_detach(struct hv_data *phv)
 
 	pr_info("%s:%s\n", __func__, MUIC_HV_DEV_NAME);
 
-	max77854_muic_set_afc_ready(phv, false);
+	max77865_muic_set_afc_ready(phv, false);
 	phv->is_afc_muic_prepare = false;
 
 	cancel_delayed_work(&phv->hv_muic_qc_vb_work);
 	pr_info("%s:%s cancel_delayed_work, Mping missing wa\n",
 			MUIC_HV_DEV_NAME, __func__);
 	cancel_delayed_work(&phv->hv_muic_mping_miss_wa);
-}
-
-#define HV_DPRESET_VAL 0x01
-#define HV_DNSRC_VAL 0x02
-#define HV_DPRESET_BIT 3
-#define HV_DPRESET_MASK (0x3 << HV_DPRESET_BIT)
-
-#define HV_DPDNVdEN_VAL 1
-#define HV_DPDNVdEN_BIT 0
-#define HV_DPDNVdEN_MASK 0x01
-
-static void hv_reset_afc(struct hv_data *phv)
-{
-	u8 value = 0, mask = 0;
-
-	if (!phv) {
-		pr_err("%s:%s: hv is not ready.\n", __func__, MUIC_HV_DEV_NAME);
-		return;
-	}
-
-	pr_info("%s:%s\n", __func__, MUIC_HV_DEV_NAME);
-
-	value = HV_DPRESET_VAL << HV_DPRESET_BIT;
-	value |= HV_DPDNVdEN_VAL;
-
-	mask = HV_DPRESET_MASK | HV_DPDNVdEN_MASK;
-
-	max77854_muic_hv_update_reg(phv->i2c, MAX77854_MUIC_REG_HVCONTROL1,
-			value, mask, true);
-
-	msleep(60);
-
-	value = HV_DNSRC_VAL << HV_DPRESET_BIT;
-	 max77854_muic_hv_update_reg(phv->i2c, MAX77854_MUIC_REG_HVCONTROL1,
-			value, mask, true);
-
-	msleep(60);
 }
 
 /*
@@ -2773,18 +2545,29 @@ void hv_set_afc_by_user(struct hv_data *phv, bool onoff)
 		return;
 	}
 
-	hv_reset_afc(phv);
-
-	if (onoff && phv->attached_dev == ATTACHED_DEV_TA_MUIC) {
-		/* Pre-configurations to start AFC from normal charge */
-		hv_do_detach(phv);
-		phv->attached_dev = ATTACHED_DEV_NONE_MUIC;
-		phv->pmuic->attached_dev = ATTACHED_DEV_NONE_MUIC;
-
-	}
+	if (onoff)
+		hv_muic_change_afc_voltage(phv->pmuic, MUIC_HV_9V);
+	else
+		hv_muic_change_afc_voltage(phv->pmuic, MUIC_HV_5V);
 }
 
 void hv_muic_chgdet_ready(struct hv_data *phv)
 {
-	hv_reset_afc(phv);
+	struct i2c_client *i2c = phv->i2c;
+	u8 val = 0;
+	u8 before, after;
+
+	before = muic_i2c_read_byte(i2c, MAX77865_MUIC_REG_CONTROL2_BC);
+	val |= (0x0 << BC_CONTROL2_DPDRV_SHIFT) |
+			(MAX77865_ENABLE_BIT << BC_CONTROL2_DPDNMAN_SHIFT);
+	max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_CONTROL2_BC, val);
+	after = muic_i2c_read_byte(i2c, MAX77865_MUIC_REG_CONTROL2_BC);
+	pr_info("%s:%s BCCTL2:[0x%02x]->[0x%02x]\n", MUIC_HV_DEV_NAME, __func__, before, after);
+
+	before = muic_i2c_read_byte(i2c, MAX77865_MUIC_REG_HVCONTROL2);
+	max77865_hv_muic_write_reg(i2c, MAX77865_MUIC_REG_HVCONTROL2, 0x00);
+	after = muic_i2c_read_byte(i2c, MAX77865_MUIC_REG_HVCONTROL2);
+	pr_info("%s:%s HVCTL2:[0x%02x]->[0x%02x]\n", MUIC_HV_DEV_NAME, __func__, before, after);
+
+	mdelay(80);
 }
