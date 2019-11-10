@@ -230,6 +230,7 @@ int irq_set_affinity_locked(struct irq_data *data, const struct cpumask *mask,
 
 int __irq_set_affinity(unsigned int irq, const struct cpumask *mask, bool force)
 {
+	struct irq_desc *desc = irq_to_desc(irq);
 	unsigned long flags;
 	int ret;
 
